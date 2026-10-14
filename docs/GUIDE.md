@@ -622,6 +622,7 @@ unchanged; this is not a containment guarantee or a dashboard result change.
 **Flags:**
 - `--port <n>` — HTTP server port (default: `3000`)
 - `--no-browser` — Don't auto-open the browser
+- `--lab` — Open the experimental real-results dashboard at `/#/lab` (cannot combine with `--tcp`)
 - `--results-dir <path>` — Directory to read results from (default: `.`)
 - `--tcp <address>` — JSON-RPC TCP server (e.g., `:9000`)
 - `--tcp-allow-remote` — Bind to all interfaces (default: loopback only)
@@ -650,6 +651,30 @@ Load results from a specific directory:
 ```bash
 waza serve --results-dir ./archived-runs
 ```
+
+Try the experimental dashboard without replacing the classic dashboard:
+```bash
+waza serve --lab --results-dir ./archived-runs
+```
+The classic dashboard remains at `/#/`. The lab connects filters, history,
+weighted-score comparisons, recorded task evidence, and JSON/CSV/print reports.
+It refreshes local results every 15 seconds; activity is saved-result event replay,
+not live worker monitoring or execution control. Missing readiness, coverage,
+and git revisions are unavailable. `/#/lab/demo` is an explicitly synthetic
+demo, never a fallback for failed API requests.
+Successful refreshes update mounted task/comparison evidence after same-ID
+regrading. Failed refreshes preserve cached artifacts. Omitted/null weighted
+scores remain unavailable, while explicit zero is recorded. Candidate selection
+remains available without a comparable baseline. Permanently closed activity
+streams require **Reconnect stream** rather than claiming automatic retry.
+The configured local storage adapter refreshes too. Incomplete rewrites of known
+artifacts fail refresh without discarding cached evidence; successful scans still
+reflect intentional deletion and ignore unrelated malformed new files.
+Missing directories remain empty while no artifacts have been admitted. New
+unrelated inaccessible paths are skipped; root and admitted-path failures remain
+explicit. Nonempty remote archives refresh on demand rather than every 15
+seconds. Evidence tabs support arrow/Home/End navigation, and nullable task or
+grader lists normalize to empty evidence in inspectors and exports.
 
 Don't auto-open browser:
 ```bash

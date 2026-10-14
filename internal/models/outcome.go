@@ -84,6 +84,8 @@ type ResponderInfo struct {
 
 // EvaluationOutcome represents the complete result of an evaluation run
 type EvaluationOutcome struct {
+	skillUnavailable bool
+
 	SchemaVersion   string                   `json:"schemaVersion"`
 	RunID           string                   `json:"eval_id"`
 	SkillTested     string                   `json:"skill"`
@@ -121,7 +123,25 @@ func (o EvaluationOutcome) MarshalJSON() ([]byte, error) {
 	if o.SchemaVersion == "" {
 		o.SchemaVersion = CurrentResultSchemaVersion
 	}
-	return json.Marshal(alias(o))
+	var skill *string
+	if o.HasSkillTested() {
+		skill = &o.SkillTested
+	}
+	return json.Marshal(struct {
+		alias
+		Skill *string `json:"skill,omitempty"`
+	}{alias(o), skill})
+}
+
+// HasSkillTested distinguishes a recorded blank string from unavailable legacy metadata.
+func (o EvaluationOutcome) HasSkillTested() bool {
+	return o.SkillTested != "" || !o.skillUnavailable
+}
+
+// ShallowCopy preserves recorded field presence and all outcome metadata.
+// Callers must replace shared collections before modifying their contents.
+func (o EvaluationOutcome) ShallowCopy() *EvaluationOutcome {
+	return &o
 }
 
 type OutcomeSetup struct {
@@ -135,6 +155,9 @@ type OutcomeSetup struct {
 }
 
 type OutcomeDigest struct {
+	weightedScoreDecoded  bool
+	weightedScoreRecorded bool
+
 	TotalTests     int          `json:"total_tests"`
 	Succeeded      int          `json:"succeeded"`
 	Failed         int          `json:"failed"`
@@ -152,6 +175,24 @@ type OutcomeDigest struct {
 
 	// Statistical summary populated when trials_per_task > 1
 	Statistics *StatisticalSummary `json:"statistics,omitempty"`
+}
+
+// HasWeightedScore distinguishes recorded zero from omitted/null legacy fields.
+// In-memory outcomes are writer data and have not passed through artifact decoding.
+func (d OutcomeDigest) HasWeightedScore() bool {
+	return !d.weightedScoreDecoded || d.weightedScoreRecorded
+}
+
+func (d OutcomeDigest) MarshalJSON() ([]byte, error) {
+	type alias OutcomeDigest
+	var score *float64
+	if d.HasWeightedScore() {
+		score = &d.WeightedScore
+	}
+	return json.Marshal(struct {
+		alias
+		WeightedScore *float64 `json:"weighted_score,omitempty"`
+	}{alias(d), score})
 }
 
 type MeasureResult struct {
@@ -461,6 +502,9 @@ func AggregateUsageStats(stats []*UsageStats) *UsageStats {
 }
 
 type TestStats struct {
+	weightedScoreDecoded  bool
+	weightedScoreRecorded bool
+
 	PassRate         float64 `json:"pass_rate"`
 	FlakinessPercent float64 `json:"flakiness_percent"`
 	PassedRuns       int     `json:"passed_runs"`
@@ -488,6 +532,23 @@ type TestStats struct {
 	// of testing a difference, so it was not a significance test. Kept so older
 	// results files load without unknown-field warnings.
 	IsSignificant *bool `json:"is_significant,omitempty"`
+}
+
+// HasAvgWeightedScore reports whether decoded task statistics recorded a score.
+func (s TestStats) HasAvgWeightedScore() bool {
+	return !s.weightedScoreDecoded || s.weightedScoreRecorded
+}
+
+func (s TestStats) MarshalJSON() ([]byte, error) {
+	type alias TestStats
+	var score *float64
+	if s.HasAvgWeightedScore() {
+		score = &s.AvgWeightedScore
+	}
+	return json.Marshal(struct {
+		alias
+		AvgWeightedScore *float64 `json:"avg_weighted_score,omitempty"`
+	}{alias(s), score})
 }
 
 // StatisticalSummary holds aggregate statistical data for the digest when trials > 1.

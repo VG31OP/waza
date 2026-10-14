@@ -9,6 +9,49 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestParseEvaluationOutcome_WeightedScorePresenceRoundTrip(t *testing.T) {
+	for _, field := range []string{"", "null", "0", "0.75"} {
+		t.Run(field, func(t *testing.T) {
+			suite, task := "", ""
+			if field != "" {
+				suite = `,"weighted_score":` + field
+				task = `,"avg_weighted_score":` + field
+			}
+			artifact := `{"summary":{"total_tests":1` + suite + `},"tasks":[{"stats":{"avg_score":0.5` + task + `}}]}`
+			nested := `{"schemaVersion":"1.5","baseline_outcome":` + artifact + `}`
+			outcome, err := ParseEvaluationOutcome([]byte(nested), "presence.json")
+			require.NoError(t, err)
+			require.Equal(t, "1.5", outcome.SchemaVersion)
+			baseline := outcome.BaselineOutcome
+			require.NotNil(t, baseline)
+			require.Equal(t, CurrentSchemaVersion, baseline.SchemaVersion)
+			present := field != "" && field != "null"
+			require.Equal(t, present, baseline.Digest.HasWeightedScore())
+			require.Equal(t, present, baseline.TestOutcomes[0].Stats.HasAvgWeightedScore())
+			data, err := json.Marshal(outcome)
+			require.NoError(t, err)
+			if !present {
+				require.NotContains(t, string(data), `"weighted_score":`)
+				require.NotContains(t, string(data), `"avg_weighted_score":`)
+			}
+			reloaded, err := ParseEvaluationOutcome(data, "round-trip.json")
+			require.NoError(t, err)
+			require.Equal(t, baseline, reloaded.BaselineOutcome)
+		})
+	}
+	writer := EvaluationOutcome{
+		Digest:       OutcomeDigest{WeightedScore: 0},
+		TestOutcomes: []TestOutcome{{Stats: &TestStats{AvgWeightedScore: 0}}},
+	}
+	require.True(t, writer.Digest.HasWeightedScore())
+	require.True(t, writer.TestOutcomes[0].Stats.HasAvgWeightedScore())
+	data, err := json.Marshal(writer)
+	require.NoError(t, err)
+	require.Contains(t, string(data), `"schemaVersion":"1.5"`)
+	require.Contains(t, string(data), `"weighted_score":0`)
+	require.Contains(t, string(data), `"avg_weighted_score":0`)
+}
+
 func TestParseEvaluationOutcome_RejectsUnsupportedNestedVersions(t *testing.T) {
 	for _, version := range []string{"2.0", "3.0", "invalid", "1", "1.-1"} {
 		for _, depth := range []int{1, 3} {

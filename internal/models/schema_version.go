@@ -192,6 +192,11 @@ func ParseEvaluationOutcome(data []byte, source string) (*EvaluationOutcome, err
 	if err := json.Unmarshal(data, &outcome); err != nil {
 		return nil, err
 	}
+	var presence outcomeFieldPresence
+	if err := json.Unmarshal(data, &presence); err != nil {
+		return nil, err
+	}
+	recordOutcomeFieldPresence(&outcome, &presence)
 	outcome.SchemaVersion = version
 	baselineSource := source
 	for baseline := outcome.BaselineOutcome; baseline != nil; baseline = baseline.BaselineOutcome {
@@ -209,4 +214,37 @@ func ParseEvaluationOutcome(data []byte, source string) (*EvaluationOutcome, err
 	}
 
 	return &outcome, nil
+}
+
+// Decode presence separately so strict unknown-field checks and schema admission
+// keep using the normal outcome decoder, including nested legacy artifacts.
+type outcomeFieldPresence struct {
+	Skill   *string `json:"skill"`
+	Summary struct {
+		WeightedScore *float64 `json:"weighted_score"`
+	} `json:"summary"`
+	Tasks []struct {
+		Stats *struct {
+			AvgWeightedScore *float64 `json:"avg_weighted_score"`
+		} `json:"stats"`
+	} `json:"tasks"`
+	Baseline *outcomeFieldPresence `json:"baseline_outcome"`
+}
+
+func recordOutcomeFieldPresence(outcome *EvaluationOutcome, presence *outcomeFieldPresence) {
+	outcome.skillUnavailable = presence.Skill == nil
+	outcome.Digest.weightedScoreDecoded = true
+	outcome.Digest.weightedScoreRecorded = presence.Summary.WeightedScore != nil
+	for i := range outcome.TestOutcomes {
+		stats := outcome.TestOutcomes[i].Stats
+		if stats == nil {
+			continue
+		}
+		stats.weightedScoreDecoded = true
+		stats.weightedScoreRecorded = i < len(presence.Tasks) &&
+			presence.Tasks[i].Stats != nil && presence.Tasks[i].Stats.AvgWeightedScore != nil
+	}
+	if outcome.BaselineOutcome != nil && presence.Baseline != nil {
+		recordOutcomeFieldPresence(outcome.BaselineOutcome, presence.Baseline)
+	}
 }

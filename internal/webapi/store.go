@@ -2,11 +2,7 @@ package webapi
 
 import (
 	"errors"
-	"log/slog"
-	"os"
-	"path/filepath"
 	"sort"
-	"strings"
 	"sync"
 
 	copilot "github.com/github/copilot-sdk/go"
@@ -14,6 +10,7 @@ import (
 	"github.com/microsoft/waza/internal/models"
 	"github.com/microsoft/waza/internal/pricing"
 	"github.com/microsoft/waza/internal/statistics"
+	"github.com/microsoft/waza/internal/storage"
 )
 
 // ErrRunNotFound is returned when a run ID does not match any stored run.
@@ -35,6 +32,7 @@ type FileStore struct {
 
 	mu      sync.RWMutex
 	runs    map[string]*models.EvaluationOutcome
+	files   map[string]struct{}
 	loaded  bool
 	loadErr error
 }
@@ -42,8 +40,9 @@ type FileStore struct {
 // NewFileStore creates a FileStore that reads results from dir.
 func NewFileStore(dir string) *FileStore {
 	return &FileStore{
-		dir:  dir,
-		runs: make(map[string]*models.EvaluationOutcome),
+		dir:   dir,
+		runs:  make(map[string]*models.EvaluationOutcome),
+		files: make(map[string]struct{}),
 	}
 }
 
@@ -52,81 +51,17 @@ func (fs *FileStore) load() error {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
 
-	fs.runs = make(map[string]*models.EvaluationOutcome)
-
-	if fs.dir == "" {
-		fs.loaded = true
-		return nil
-	}
-
-	// Check if directory exists
-	if _, err := os.Stat(fs.dir); err != nil {
-		if os.IsNotExist(err) {
-			fs.loaded = true
-			return nil
-		}
-		fs.loadErr = err
-		return err
-	}
-
-	// Recursively walk directory tree to find all JSON files
-	err := filepath.WalkDir(fs.dir, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
-			// Skip inaccessible paths
-			return nil
-		}
-		if d.IsDir() {
-			// Continue walking into subdirectories
-			return nil
-		}
-		if !strings.HasSuffix(d.Name(), ".json") {
-			return nil
-		}
-
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return nil
-		}
-
-		ok, err := isOutcomeJSON(data)
-		if err != nil {
-			return nil
-		}
-		if !ok {
-			return nil
-		}
-
-		outcome, err := models.ParseEvaluationOutcome(data, path)
-		if err != nil {
-			slog.Warn("skipping unreadable results artifact", "path", path, "error", err)
-			return nil
-		}
-
-		if outcome.RunID == "" {
-			// Use relative path (without extension) as fallback ID to avoid collisions
-			relPath, relErr := filepath.Rel(fs.dir, path)
-			if relErr != nil {
-				relPath = d.Name()
-			}
-			outcome.RunID = strings.TrimSuffix(filepath.ToSlash(relPath), ".json")
-		}
-		fs.runs[outcome.RunID] = outcome
-		return nil
-	})
-
+	replacement, files, err := storage.ReadLocalResults(fs.dir, fs.files)
 	if err != nil {
 		fs.loadErr = err
 		return err
 	}
 
+	fs.runs = replacement
+	fs.files = files
 	fs.loaded = true
 	fs.loadErr = nil
 	return nil
-}
-
-func isOutcomeJSON(data []byte) (bool, error) {
-	_, ok, err := models.ProbeEvaluationOutcomeSchemaVersion(data)
-	return ok, err
 }
 
 // ensureLoaded loads data if not already loaded.
@@ -193,7 +128,23 @@ func outcomeToSummary(o *models.EvaluationOutcome) RunSummary {
 	}
 	cost, costSource := pricing.Compute(costUsage)
 
+	var weightedScore *float64
+	if o.Digest.HasWeightedScore() && len(o.TestOutcomes) > 0 && len(o.TestOutcomes) == o.Digest.TotalTests {
+		complete := true
+		for _, task := range o.TestOutcomes {
+			if task.Stats == nil {
+				complete = false
+				break
+			}
+		}
+		if complete {
+			score := o.Digest.WeightedScore
+			weightedScore = &score
+		}
+	}
+
 	return RunSummary{
+		skillRecorded:   o.SkillTested == "" && o.HasSkillTested(),
 		ID:              o.RunID,
 		Spec:            o.BenchName,
 		Model:           o.Setup.ModelID,
@@ -210,6 +161,9 @@ func outcomeToSummary(o *models.EvaluationOutcome) RunSummary {
 		Duration:        float64(o.Digest.DurationMs) / 1000.0,
 		Timestamp:       o.Timestamp,
 		Source:          "local",
+		Skill:           o.SkillTested,
+		Repetitions:     o.Setup.RunsPerTest,
+		WeightedScore:   weightedScore,
 	}
 }
 
@@ -285,11 +239,16 @@ func outcomeToDetail(o *models.EvaluationOutcome) *RunDetail {
 
 	for _, to := range o.TestOutcomes {
 		tr := TaskResult{
+			ID:      to.TestID,
 			Name:    to.DisplayName,
 			Outcome: string(to.Status),
 		}
 		if to.Stats != nil {
 			tr.Score = to.Stats.AvgScore
+			if to.Stats.HasAvgWeightedScore() {
+				score := to.Stats.AvgWeightedScore
+				tr.WeightedScore = &score
+			}
 			tr.Duration = float64(to.Stats.AvgDurationMs) / 1000.0
 			tr.BootstrapCI = confidenceIntervalResponse(to.Stats.BootstrapCI)
 			tr.PassRateCI = confidenceIntervalResponse(to.Stats.PassRateCI)

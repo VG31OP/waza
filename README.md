@@ -28,7 +28,7 @@ Or browse the [GitHub Releases](https://github.com/microsoft/waza/releases) page
 
 ### Install from Source
 
-Requires Go 1.26+:
+Requires Go 1.26+, Make, Node.js, and npm. The source build generates the dashboard assets before embedding them in the binary.
 
 Note: due to the use of LFS artifacts you cannot install waza using `go install`. To install waza outside of a normal release, clone the repository:
 
@@ -40,7 +40,7 @@ cd waza
 git lfs install
 git lfs pull
 
-go build -o waza ./cmd/waza
+make build
 ./waza <waza command line>
 ```
 
@@ -953,6 +953,7 @@ listing is unchanged.
 |------|---------|-------------|
 | `--port <port>` | `3000` | HTTP server port |
 | `--no-browser` | `false` | Don't auto-open the browser |
+| `--lab` | `false` | Open the experimental real-results dashboard; keep the classic dashboard at `/#/` |
 | `--results-dir <dir>` | `.` | Directory to scan for result files |
 | `--tcp <addr>` | (off) | TCP address for JSON-RPC (e.g., `:9000`); defaults to loopback for security |
 | `--tcp-allow-remote` | `false` | Allow TCP binding to non-loopback addresses (⚠️ no authentication) |
@@ -987,6 +988,24 @@ The dashboard displays evaluation results with:
 - Score distributions across trials
 - Model comparisons
 - Aggregated metrics and trends
+
+**Dashboard lab (experimental):**
+```bash
+waza serve --lab --results-dir ./results
+# Opens http://localhost:3000/#/lab; classic dashboard stays at http://localhost:3000/#/
+```
+The lab uses saved Waza results for linked charts, searchable history, stable-task
+comparisons, recorded evidence, and JSON/CSV/print reports. Local results refresh
+every 15 seconds or on demand; nonempty remote archives refresh on demand rather
+than being downloaded repeatedly. Current runs shows **saved-result event replay**,
+not live worker discovery or execution controls. Readiness, coverage, and revision
+metadata absent from the API remain explicitly unavailable. `--lab` cannot be
+combined with `--tcp`. An isolated synthetic UX demo remains at `/#/lab/demo`;
+API failures never substitute mock results. Cloud authentication, hosting, and
+execution are not implemented. See the [dashboard lab guide](site/src/content/docs/guides/dashboard-lab.mdx).
+Refreshes update mounted evidence after same-ID regrading and preserve cached
+results on failure. Missing/null weighted scores are unavailable, not zero.
+Singleton suites keep the candidate picker; closed streams require manual reconnect.
 
 **AI Credit usage:**
 
