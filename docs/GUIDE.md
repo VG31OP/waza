@@ -18,6 +18,20 @@ Perfect for skill authors, platform teams, and developers building AI-powered ap
 
 ---
 
+## Private dependency-fault testing
+
+The #662 harness is an internal, injected testing boundary, not a public
+finite-sequence configuration or retry feature. It preserves existing CLI/MCP
+mocks and explicit empty task overrides. Fault source validation happens before
+normalization or eager matcher/grader decoding; a standalone task's valid
+fragment does not establish enclosing scenario eligibility.
+
+Private tests exercise cancellation with owned interruptible endpoints, finite
+allocation, matching, capture failures and isolated state. They do not certify
+platform process pipes, SDK resume, external integration or filesystem/network
+sandboxing. No live-agent execution is required for these tests. See the
+[private fault harness guide](../site/src/content/docs/guides/private-fault-fixtures.mdx).
+
 ## Installation
 
 Choose one of three methods:
@@ -689,6 +703,12 @@ waza serve --tcp :9000
 ---
 
 ## Advanced Usage
+
+### Controlled Dependency Failures
+
+MCP mock `error` responses and command mock `stderr`/`exit_code` responses can model permanent failures or permission denial without contacting the dependency. Existing matchers return the first matching fixture on every call; they do not advance through a recovery sequence. Configured unmatched calls fail closed, and MCP unmatched diagnostics omit argument values. The in-process MCP handler rejects tool calls whose context is already canceled or expired before fixture dispatch; this is not per-request stdio cancellation or timeout injection.
+
+Use existing graders and checkpoints to check honest failure reporting and prohibited effects. A mocked interaction or responder message is not proof that an external operation occurred. Undeclared commands remain available through the host `PATH`, and command shim interception does not isolate the filesystem or network. See the [eval guide](../site/src/content/docs/guides/eval-yaml.mdx#choosing-a-test-boundary) for choosing mocked versus live dependencies.
 
 ### Existing-workflow compatibility examples
 

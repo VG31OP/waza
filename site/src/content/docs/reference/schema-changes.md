@@ -20,10 +20,10 @@ scenario semantics; `2.1` and future majors are not supported scenario versions.
 |---|---|---|
 | Legacy `eval.yaml` | `schemaVersion` | `1.4` |
 | Scenario `eval.yaml` | `schemaVersion` | Exact `2.0`, explicit opt-in |
-| Newly generated `results.json` | `schemaVersion` | `1.5` |
+| Newly generated `results.json` | `schemaVersion` | `1.6` |
 | Historical `results.json` | `schemaVersion` | Declared `1.x`; missing version defaults to `1.4` |
 | Task YAML | No independent version field | Existing legacy format, unchanged |
-| `snapshot.json` | `schemaVersion` | `1.0` |
+| `snapshot.json` | `schemaVersion` | `1.1` |
 | Dashboard/SSE event envelope | `schemaVersion` | `1.0` |
 | `waza.preflight` report | `schemaVersion` | `1.0` (independent artifact) |
 
@@ -41,7 +41,7 @@ Schema versions use `MAJOR.MINOR` format with no patch component.
 - **Legacy MINOR** changes are backward-compatible additions, usually optional fields. Legacy readers accept same-major artifacts and warn when they see unknown fields. Scenario evals are an exception: only exact `2.0` is supported.
 - **MAJOR** changes are breaking. Legacy readers refuse artifacts from a different major version and point to `waza migrate <file>`; scenario-aware readers additionally accept explicitly selected scenario eval `2.0`.
 - Missing `schemaVersion` in legacy eval/result inputs continues to default to `1.4`. Declared same-major versions remain accepted and unchanged on read/re-save; unknown fields are warned about. Scenario-bearing evals must explicitly select `2.0` and cannot omit the version. Task YAML has no independent version field.
-- New evaluations and regrades write results `1.5`, independently of their eval input version. This does not upgrade legacy eval defaults or task formats. Scenario scaffolds explicitly emit eval `2.0`; scenario readers reject unknown eval/config fields instead of granting forward-minor compatibility. Reading/re-saving historical results does not invent reliability metadata or upgrade their declared version.
+- New evaluations and regrades write results `1.6`, independently of their eval input version. This does not upgrade legacy eval defaults or task formats. Scenario scaffolds explicitly emit eval `2.0`; scenario readers reject unknown eval/config fields instead of granting forward-minor compatibility. Reading/re-saving historical results does not invent reliability metadata or upgrade their declared version.
 
 ## Migration command
 
@@ -68,12 +68,25 @@ unchanged; it does not downgrade scenario discovery semantics to `1.x`.
   with exact `2.0`. Truly absent `scenario` retains existing legacy defaults;
   tasks/results and their same-major behavior are unchanged.
 
+### Snapshot 1.1 (independent artifact)
+
+- Adds portable evidence metadata with full source origin, availability,
+  separate source/content digests, requested engine/model and observed execution
+  mode. Unsupported or uncertified runtime details remain unknown.
+- Snapshot hashes and tool events do not preserve a reconstructible workspace
+  or prove external state. Offline replay checks stored consistency only.
+
 ### 2.0 (scenario evals only)
 
 - Added a nonempty `scenario` workflow identity with optional existing `skill` context; scenario scaffolds explicitly select exact eval `2.0`, while legacy reader defaults remain `1.4` and task formats are unchanged.
 - Target-free scenarios without effective explicit skill directories disable native SDK skill discovery; disabling the last eval directory preserves that isolation. Explicit task directories still opt in, empty task directories disable discovery, and `--no-skills` overrides opt-ins.
 - Scenario evals reject unknown eval/config fields and future minor versions. Old executables reject major `2` before execution.
 - Scenario result caching is bypassed with a notice until external dependencies can be completely fingerprinted.
+
+### 1.6 (new results only)
+
+- Adds optional `runs[].evidence` manifests and `runs[].requirement_explanations` linking deterministic verdicts to observed checks and unavailable evidence.
+- This is a result-writer version, not a change to the independent manifest or snapshot schemas. Legacy result versions remain unchanged on read/re-save, and missing versions still default to `1.4`.
 
 ### 1.5 (new results only)
 
