@@ -85,9 +85,13 @@ var (
 	otelFile            string
 	otelIncludePayloads bool
 
-	snapshotDir        string
-	snapshotEnvAllow   []string
-	snapshotRedactPath string
+	snapshotDir           string
+	snapshotEnvAllow      []string
+	snapshotRedactPath    string
+	snapshotFiles         []string
+	snapshotEvaluatorOnly []string
+	snapshotMaxFileBytes  int64
+	snapshotMaxTotalBytes int64
 
 	// runTelemetry holds the configured OpenTelemetry provider for the
 	// current `waza run` invocation. It is initialized in runCommandE and
@@ -190,14 +194,30 @@ config.executor: mock checks only the harness, not agent quality.`,
 	cmd.Flags().StringVar(&otelFile, "otel-file", "", "File path for span JSON when --otel-exporter=file")
 	cmd.Flags().BoolVar(&otelIncludePayloads, "otel-include-payloads", false, "Include prompt/tool-arg/tool-result/completion content in spans (default: redacted, only sha256+length emitted)")
 
-	cmd.Flags().StringVar(&snapshotDir, "snapshot", "", "Write per-task snapshot.json files to this directory for deterministic replay (see `waza replay`)")
+	cmd.Flags().StringVar(&snapshotDir, "snapshot", "", "Write per-task snapshot.json files for offline consistency checks; preserves workspace contents only with explicit --snapshot-file selections (see `waza replay`)")
 	cmd.Flags().StringArrayVar(&snapshotEnvAllow, "snapshot-env-allow", nil, "Environment variables to capture in snapshots (supports trailing-* wildcards). Default-deny.")
 	cmd.Flags().StringVar(&snapshotRedactPath, "redact", "", "Optional path to a custom redaction policy YAML applied during snapshot capture")
+	cmd.Flags().StringArrayVar(&snapshotFiles, "snapshot-file", nil, "Reviewed agent-visible UTF-8 workspace file to preserve (repeatable; requires --snapshot)")
+	cmd.Flags().StringArrayVar(&snapshotEvaluatorOnly, "snapshot-evaluator-only", nil, "Evaluator-only file or directory to exclude from workspace capture (repeatable; requires --snapshot and --snapshot-file; metadata inventory capped at 256 inspections/depth 32)")
+	cmd.Flags().Int64Var(&snapshotMaxFileBytes, "snapshot-max-file-bytes", 1<<20, "Maximum input and sanitized bytes per preserved file")
+	cmd.Flags().Int64Var(&snapshotMaxTotalBytes, "snapshot-max-total-bytes", 10<<20, "Maximum aggregate input and sanitized bytes for preserved files")
 
 	return cmd
 }
 
 func runCommandE(cmd *cobra.Command, args []string) error {
+	if len(snapshotFiles) > 0 && snapshotDir == "" {
+		return fmt.Errorf("--snapshot-file requires --snapshot")
+	}
+	if len(snapshotEvaluatorOnly) > 0 && snapshotDir == "" {
+		return fmt.Errorf("--snapshot-evaluator-only requires --snapshot")
+	}
+	if len(snapshotEvaluatorOnly) > 0 && len(snapshotFiles) == 0 {
+		return fmt.Errorf("--snapshot-evaluator-only requires --snapshot-file")
+	}
+	if len(snapshotFiles) > 0 && (snapshotMaxFileBytes <= 0 || snapshotMaxTotalBytes <= 0) {
+		return fmt.Errorf("workspace snapshot byte limits must be positive")
+	}
 	// Stop the process-wide Copilot SDK client at the end of the run, after
 	// every per-model engine has been Shutdown. Engines built on the shared
 	// client (production path) leave it running so subsequent models and
@@ -806,6 +826,10 @@ func runSingleModel(cmd *cobra.Command, spec *models.EvalSpec, specPath string, 
 		writer := snapshot.NewWriter(snapshotDir)
 		runnerOpts = append(runnerOpts, orchestration.WithSnapshotWriter(writer))
 		runnerOpts = append(runnerOpts, orchestration.WithWazaVersion(version))
+		if len(snapshotFiles) > 0 {
+			runnerOpts = append(runnerOpts, orchestration.WithWorkspaceEvidence(snapshotFiles, snapshotEvaluatorOnly,
+				snapshot.WorkspaceLimits{MaxFileBytes: snapshotMaxFileBytes, MaxTotalBytes: snapshotMaxTotalBytes}))
+		}
 		if len(snapshotEnvAllow) > 0 {
 			runnerOpts = append(runnerOpts, orchestration.WithSnapshotEnvAllow(snapshotEnvAllow))
 		}

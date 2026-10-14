@@ -948,6 +948,140 @@ waza run evals/code-explainer/eval.yaml -o results.json
 
 ---
 
+## Snapshot inspection and regrading
+
+```bash
+waza run eval.yaml --output results.json --snapshot ./snapshots/
+waza replay ./snapshots/my-task-run1.json
+waza grade eval.yaml --results results.json --workspace ./preserved-agent-workspace
+```
+
+Replay checks stored event sequencing and grader score/pass consistency without contacting an agent. It does not re-run graders, reconstruct files, or verify external state. Fixture and instruction hashes identify bytes but do not preserve them; file-based grading needs the actual agent workspace. Prompt graders may call the configured judge model. Live replay is not implemented.
+
+Portable evidence (manifest `1.0`, snapshot `1.1`) keeps missing-version defaults
+for legacy eval/results readers at `1.4`, while newly generated results use result
+schema `1.6`. Task YAML has no independent schema-version field or default.
+It describes every trial, full source origin, source/content
+digests, availability, completeness, redaction, unavailable versions, requested
+`no_skills`/native skill control, and operational uncertainty. Requested
+controls are not SDK enforcement proof. Cached trials retain source origin;
+historical absence remains unassessed.
+Raw manifest JSON must satisfy the complete embedded evidence schema before
+decoded metadata can be assessed; missing fields and invalid null scalars are
+withheld, not repaired into zero values. Schema-declared nullable fields remain valid.
+Invalid metadata is withheld. Scoped requirement checks are existing grader
+observations, not enforcement, causal explanations, new scores, or changed defaults.
+API, interpretation reports and dashboard views inspect metadata without fetching
+snapshot bytes. Their requirement references identify captured artifact metadata;
+artifact-relative value pointers are unverified and withheld, with an explicit
+limitation. Explicit snapshot-content verification independently checks digests
+and pointer existence when the actual bytes are supplied.
+Checkpoint observation labels include their declared `after_turn`, so the same
+grader's observations at different turns remain distinguishable in `--interpret`.
+Interpretation also lists each captured-artifact reference's ID and source origin
+as metadata only, without claiming verified values. Present zero-valued source
+run/attempt fields mean unavailable attribution; the dashboard labels them
+unavailable without copying the selected result's lineage. Nonzero mismatches
+remain withheld, and omitted/null required fields remain invalid.
+Requirements with omitted, null, or empty check lists remain visible as unassessed
+in interpretation; populated sibling observations are retained.
+
+Snapshot capture sanitizes typed JSON and structurally sensitive keys before
+serialization without modifying original results. Unsafe keys/identifiers,
+opaque bytes, duplicate/trailing JSON, excessive depth, unsupported values, and
+invalid policies fail safely. Numeric lexical tokens are retained. Environment
+capture is default-deny; custom redaction replaces defaults unless `extend: true`.
+Pattern matching cannot certify confidentiality: inspect before sharing. Rule
+counts include selected files; normalization-only changes are not secret matches.
+
+New captures report each artifact's `redacted` flag from its own materialized
+content changes, independently of the capture-wide match count. Validation
+changes also mark their enclosing result, but metadata, environment and file
+changes do not contaminate unchanged siblings. Core JSON representation-only
+normalization and no-op replacements are not changes; removal of a materialized
+field is. Historical flags remain as recorded.
+
+```bash
+# Select only reviewed agent-visible UTF-8 regular files (Linux/macOS)
+waza run eval.yaml --snapshot ./snapshots --snapshot-file report.txt \
+  --snapshot-evaluator-only private-rubric.txt \
+  --snapshot-max-file-bytes 1048576 --snapshot-max-total-bytes 10485760 \
+  --output results.json
+
+# Narrow file-only regrading from an explicitly reviewed snapshot
+waza grade eval.yaml --results results.json --task report-task \
+  --evidence-snapshot ./reviewed-snapshot.json --output regraded.json
+```
+
+Repeatable selected files/exclusions require `--snapshot`; both byte limits must
+be positive (defaults: 1 MiB/file, 10 MiB total). Credentials and evaluator-only
+files must never be captured. Allow-listing is not authorization proof: review
+agent visibility and exclusions. Selected files use private directories/files
+and randomized non-overwriting names; ordinary no-file snapshot defaults remain.
+Partial capture and capture/publication failure have safe missing/unavailable
+states. Capture adds no path fetching or export/upload. Existing explicitly
+configured result storage still uploads results, including evidence metadata,
+but does not fetch or upload separate snapshot files.
+
+Immediate capture-to-write uses private publication for any nonempty selected-file
+request, including zero preserved files. The internal request marker is not
+serialized; loaded/manual zero-file snapshots keep historical writer routing.
+Failure evidence retains policy-validated eval/task identity when available;
+otherwise it records unavailable attribution with numeric lineage only.
+This does not sanitize or replace original execution result fields.
+The dashboard and `--interpret` report missing source identifiers as unavailable;
+they do not substitute the displayed evaluation or task identity.
+Requirement observations may reference captured artifacts, including explicitly
+partial or redacted captures, but not unavailable, unrequested, or digest-only
+artifacts. A resolvable metadata identity does not establish observed content.
+
+Before selected content is read, metadata-only exclusion admission permits at
+most 256 entry inspections and depth 32, including descendants and repeated
+inspections. Limit, inspection and resource failures prevent capture; no silent
+pruning or descriptor-limit increases are attempted. Unrelated hard links and
+missing-exclusion neighbors remain eligible. Root/child admission rejects
+symlinks except the explicitly validated macOS `/var` and `/tmp` system aliases.
+Identity and before/after metadata checks do not freeze concurrent same-user
+directory membership or certify atomic/authentic state. A late close failure
+after verified publication retains a residual path with unavailable evidence.
+Private-file cleanup failure can similarly retain one independently verified
+complete residual, including a hidden temporary file, with an explicit error
+and unavailable capture evidence. Additional possible residue is reported
+separately; one path cannot enumerate it. Partial/changed bytes and unverified
+moved-root locations do not become complete snapshots or cleanup success.
+
+Selected-state destination publication on Linux/macOS uses component-wise
+no-follow creation/admission, including intermediate directories. Missing
+directories are created `0700`; existing ancestors need not be private, but the
+final directory must be `0700`. Identity rechecks before evidence writes and
+before/after linking never recreate missing directories. Failures may leave
+newly created empty directories; these observations do not protect a moving
+same-user namespace. Ordinary metadata-only snapshot output is unchanged.
+
+Evidence-snapshot regrading on Linux/macOS requires `--task`, exactly one assessed matching run,
+no explicit `--workspace`, original manifest/full-origin verification, and
+complete unredacted file text/digests. Only explicit required file-grader
+`must_exist`/`content_patterns` inputs are privately materialized. It rejects
+all non-file graders, output-based expectations, absence/wildcard checks, and
+file graders without explicit required paths. Checks cover only the materialized
+captured subset: `must_not_match` checks a selected file's complete verified text,
+not absence from the original workspace.
+Regrading keeps `source_manifest_sha256` and invalidates
+original result/validation/grader-configuration/checkpoint links. Older workspace
+grading is unchanged; no extra automatic model calls are introduced.
+Capture byte limits are not reapplied to independently supplied snapshots during
+workspace verification/materialization; review their sizes before selection.
+Expected materialized bytes and observed metadata are checked before workspace
+return; integrity after that point is not certified.
+The [task authoring example](../site/src/content/docs/guides/eval-yaml.mdx#link-intent-to-existing-checks)
+shows how descriptive `requirements` reference existing scoped graders without
+adding assertions or changing pass/fail.
+
+See the [complete evidence guide](../site/src/content/docs/guides/snapshot-replay.mdx)
+for hash canonicalization, completeness limits, and a runnable mock example;
+the [dashboard Evidence tab](../site/src/content/docs/guides/dashboard.mdx#portable-evidence)
+shows every trial without local-file fetching.
+
 ## Dashboard
 
 The `waza serve` command launches an interactive web dashboard for viewing and analyzing evaluation results.

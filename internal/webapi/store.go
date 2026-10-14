@@ -7,6 +7,7 @@ import (
 
 	copilot "github.com/github/copilot-sdk/go"
 	"github.com/microsoft/waza/internal/copilotevents"
+	"github.com/microsoft/waza/internal/evidence"
 	"github.com/microsoft/waza/internal/models"
 	"github.com/microsoft/waza/internal/pricing"
 	"github.com/microsoft/waza/internal/statistics"
@@ -242,6 +243,43 @@ func outcomeToDetail(o *models.EvaluationOutcome) *RunDetail {
 			ID:      to.TestID,
 			Name:    to.DisplayName,
 			Outcome: string(to.Status),
+		}
+		hasEvidenceMetadata := false
+		for _, run := range to.Runs {
+			hasEvidenceMetadata = hasEvidenceMetadata || run.Evidence != nil || len(run.RequirementExplanations) > 0
+			row := EvidenceRunResponse{
+				RunNumber: run.RunNumber, Attempts: run.Attempts, Cached: to.Cached, Assessment: "unassessed",
+				Explanations: run.RequirementExplanations,
+				Message:      "Evidence capture was not assessed or not requested; historical absence is not success.",
+			}
+			if run.Evidence != nil {
+				if err := evidence.Bind(run.Evidence, o.RunID, to.TestID, run.RunNumber, run.Attempts, to.Cached); err != nil {
+					row.Assessment = "invalid"
+					row.Message = "Evidence identity or metadata is invalid; do not use it for state reconstruction."
+					row.Explanations = nil
+				} else {
+					row.Assessment, row.Message = "recorded", "Producer metadata only; content availability must be verified for the requested operation."
+					row.Manifest = run.Evidence
+				}
+			}
+			if row.Assessment != "invalid" {
+				explanations, pointersWithheld, err := evidence.MetadataExplanations(row.Manifest, to.TestID, row.Explanations)
+				if err != nil {
+					row.Assessment = "invalid"
+					row.Message = "Requirement observation references are invalid; the observations are withheld."
+					row.Manifest = nil
+					row.Explanations = nil
+				} else {
+					row.Explanations = explanations
+					if pointersWithheld {
+						row.Message += " Artifact-relative value pointers are unverified and withheld; references identify artifact metadata only."
+					}
+				}
+			}
+			tr.EvidenceRuns = append(tr.EvidenceRuns, row)
+		}
+		if !hasEvidenceMetadata {
+			tr.EvidenceRuns = nil
 		}
 		if to.Stats != nil {
 			tr.Score = to.Stats.AvgScore

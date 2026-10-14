@@ -106,6 +106,17 @@ type TaskResult struct {
 	BootstrapCI   *ConfidenceIntervalResponse `json:"bootstrapCI,omitempty"`
 	PassRateCI    *ConfidenceIntervalResponse `json:"passRateCI,omitempty"`
 	Trials        *TrialCountsResponse        `json:"trials,omitempty"`
+	EvidenceRuns  []EvidenceRunResponse       `json:"evidenceRuns,omitempty"`
+}
+
+type EvidenceRunResponse struct {
+	RunNumber    int                             `json:"runNumber"`
+	Attempts     int                             `json:"attempts"`
+	Cached       bool                            `json:"cached"`
+	Assessment   string                          `json:"assessment"`
+	Manifest     *models.EvidenceManifest        `json:"manifest,omitempty"`
+	Explanations []models.RequirementExplanation `json:"explanations,omitempty"`
+	Message      string                          `json:"message,omitempty"`
 }
 
 type TrialCountsResponse struct {
