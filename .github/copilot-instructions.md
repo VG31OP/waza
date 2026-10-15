@@ -2,6 +2,19 @@
 
 You are working on a project that uses **Squad**, an AI team framework. When picking up issues autonomously or using Squad, follow these guidelines.
 
+## Current Waza Team Policy
+
+The current roster, ownership, and model assignments are in `.squad/team.md`,
+`.squad/routing.md`, `.squad/governance.md`, and `.squad/model-policy.md`.
+Follow these over historical model directives in decisions or member histories.
+Code-review agent passes use `gpt-5.6-terra`; do not silently substitute the
+authoring model or another provider. Other Squad assignments use the persisted
+role settings in `.squad/config.json`. Hosts without model control must report
+that limitation rather than claiming these preferences were enforced.
+
+These files configure Squad; they do not turn ordinary Copilot work into a Squad
+Coordinator session. The canary check below remains scoped to actual Squad sessions.
+
 ## Coordinator Canary Check
 
 **IMPORTANT — run this check only when the session is expected to use Squad Coordinator behavior, before doing any Squad work:**
