@@ -150,6 +150,9 @@ waza spec verify skills/my-skill evals/my-skill/eval.yaml --fail --format github
 # Resolve remote grader refs and write waza.lock
 waza get evals/my-skill/eval.yaml
 
+# Challenge native file/output checks with evaluator-only references (offline)
+waza assure eval.yaml --references labels.json
+
 # Note: 'generate' is available as an alias for 'new' (see below for new command)
 # Note: Custom agents (.agent.md) are supported — see https://microsoft.github.io/waza/guides/custom-agents/
 
@@ -551,6 +554,63 @@ Compare results from multiple evaluation runs side by side — per-task score de
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--format <fmt>` | `-f` | Output format: `table` or `json` (default: `table`) |
+| `--release-policy <file>` | | Explicit fixed-design policy assessment; requires `--collection-dir` instead of historical result arguments |
+| `--collection-dir <dir>` | | New paired collection sidecars; missing/invalid/inconclusive selected evidence exits `1` |
+
+`gate` accepts the same explicit policy selection. Its ordinary regression,
+golden, task-set defaults and `0/1/2/3` exits remain unchanged. Policy metadata in
+an ordinary results file is **not** enforcement; older executables reject the
+new flags. Use `waza compare-plan` to bind an explicit design to inspected sources
+and `waza compare-collect` for fresh paired offline mock/native-text attempts.
+Strict reassessment rejects absent, null or case-aliased required verdict fields;
+only explicitly observed `false` and numeric zero may count as failed checks.
+Selected requirements and promoted cluster/task/trial keys also reject
+case aliases, including contradictory declarations in either order.
+Do not convert historical results into policy receipts. The
+[offline example](examples/controlled-comparison/) intentionally remains
+statistically inconclusive; mock observations are not agent-quality evidence.
+See [controlled comparison contracts](docs/CONTROLLED-COMPARISONS.md) for the
+fixed-design assumptions, missing-evidence states and current limitations.
+
+### `waza compare-assurance-plan`
+
+Explicitly bind an **independent offline assurance contract** to a base policy
+with assurance required, before fresh collection:
+
+```bash
+waza compare-assurance-plan --release-policy policy.json \
+  --baseline-eval baseline/eval.yaml --candidate-eval candidate/eval.yaml \
+  --baseline-references baseline/references.json \
+  --candidate-references candidate/references.json \
+  --output assurance-contract.json
+```
+
+These paths represent your authored inputs. Output must be a new file. Collect
+with `compare-collect --assurance-contract assurance-contract.json`, then assess
+with `compare` or `gate` using that explicit contract, `--release-policy`,
+`--collection-dir` and current per-arm eval/reference inputs. Optional per-arm
+`--review` and `--accept-review-source` are separately supplied acceptance, not
+authenticated human review. Unreviewed examples remain nonpassing.
+An explicitly supplied review timestamp must be a nonnull date-time string:
+two-digit hours, dot-separated fractions and bounded numeric timezone offsets.
+Omitted timestamps remain allowed only for unreviewed/submitted declarations.
+
+Only mock/no-skills/native-text/finite-authored-output qualification is supported:
+both arms need fresh exact offline1.0 reports and deterministic regrading of
+retained actual responses, plus every base non-assurance pass condition.
+No live SDK, calibration, paid1.1/billing support or automatic paid validation.
+Frozen base 1.0 policy/journal/decision and legacy defaults stay unchanged; the
+base API/dashboard remain nonpassing when assurance is required. Only explicit
+outer assessment can pass. Use JSON for machine-readable outer decisions;
+selected human output does not promise all legacy rendering layouts.
+See [profile artifacts, flags and limits](docs/CONTROLLED-COMPARISONS.md#independent-offline-assurance-profile).
+
+Internal native source projections, root-free capture reconstruction, static
+slot joins and supplied retry-prefix inspection are not public collection
+commands. They establish retained consistency, not witnessed execution,
+durability, retry permission or release authority. New private durable
+collection writers support Linux/macOS only; Windows reader checks do not
+certify durable writing. See [the internal boundaries](docs/CONTROLLED-COMPARISONS.md#internal-native-task-groundwork-not-an-enabled-producer).
 
 ### `waza replay <snapshot.json>`
 
@@ -1652,11 +1712,12 @@ expected_output: "{{.Vars.expected_output}}"
 language: "{{.Vars.language}}"
 ```
 
-Tasks can also be mixed — use both explicit task files and CSV-generated tasks:
+A nonempty `tasks_from` takes precedence over YAML `tasks`; the two sources are
+not combined:
 
 ```yaml
 tasks:
-  - "tasks/*.yaml"        # Explicit tasks
+  - "tasks/*.yaml"        # Used only when tasks_from is absent or empty
 
 tasks_from: ./test-cases.csv    # CSV-generated tasks
 range: [1, 20]                  # Only first 20 data rows
@@ -1982,6 +2043,7 @@ See the complete [Grader Reference](docs/GRADERS.md) for detailed configuration 
 - **[Getting Started](docs/GETTING-STARTED.md)** - Complete walkthrough: init → new → run → check
 - **[Demo Guide](docs/DEMO-GUIDE.md)** - 7 live demo scenarios for presentations
 - **[Grader Reference](docs/GRADERS.md)** - Complete grader types and configuration
+- **[Grader Challenges and Assurance](docs/GRADER-CHALLENGES.md)** - Offline native file/output verification; bundled labels remain unreviewed, paid calibration unavailable
 - **[Tutorial](docs/TUTORIAL.md)** - Getting started with writing skill evals
 - **[CI Integration](docs/SKILLS_CI_INTEGRATION.md)** - GitHub Actions workflows for skill evaluation
 - **[Token Management](docs/TOKEN-LIMITS.md)** - Tracking and optimizing skill context size

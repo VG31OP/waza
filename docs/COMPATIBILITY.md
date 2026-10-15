@@ -38,7 +38,7 @@ npx playwright test e2e/compatibility.spec.ts --project=chromium
 ```
 
 These commands need Go 1.26+, Git, the existing script-grader runtimes
-(Python and Node), and, for the browser gate, installed web dependencies and
+(a working `python3`, or `python` as fallback, and Node), and, for the browser gate, installed web dependencies and
 Chromium. A fresh worktree must have `web/dist/index.html` and
 `web/dist/favicon.svg` for Go embedding; create missing stubs only, never
 overwrite existing assets. Missing prerequisites are failures, not evidence of
@@ -47,6 +47,16 @@ forces `ENABLE_COPILOT_TESTS=false`, even when the caller enabled live tests,
 and does not use paid agent calls. `TestCompatibilityOfflineMakeTarget` checks
 the actual recipe's subprocess environment and each missing prerequisite
 without executing Go or an agent (POSIX hosts with Make installed).
+
+The broader Go suite also includes
+`internal/nativesnapshot: TestPinnedOriginalFixturesPreserveCheckoutBytes`.
+This test requires Git to perform actual isolated index checkouts with
+`core.autocrlf=true` and `false`; missing Git is an explicit infrastructure
+failure, not a skipped compatibility check. This is not a runtime Git
+dependency. The separate mandatory
+`internal/releasepolicy: TestRetryPinnedOriginalJournalOracle` checks all 431
+cases against retained exact source bytes without Git or historical ancestry.
+Checkout tests do not certify Windows durable collection writers.
 
 ## Fixed artifacts and repeatability
 

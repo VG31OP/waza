@@ -12,9 +12,35 @@ Waza helps you:
 - **Run evaluations** against different AI models to measure skill effectiveness
 - **Reuse remote grader presets** with Go-module-style `ref` entries pinned by `waza.lock`
 - **Compare results** across models and versions to track improvement
-- **View metrics** in an interactive dashboard with live results, trends, and detailed analysis
+- **Select fixed-design release assessment explicitly** with `compare` or `gate`
+  using `--release-policy` and `--collection-dir`; historical results do not
+  become fresh paired evidence. Use `compare-plan` with explicit design/
+  requirements and `compare-collect` for supported offline mock/native-text
+  collection. See [the end-to-end example and limits](CONTROLLED-COMPARISONS.md).
+- **Opt in separately to offline assurance** with `compare-assurance-plan`
+  and a new exclusive `--output`, then explicitly select `--assurance-contract`
+  with `--release-policy` during collection and assessment. Supply current
+  per-arm eval/reference inputs and separately selected review-source acceptance.
+  Only mock/no-skills/native-text finite authored cases and retained actual
+  responses are supported. Both fresh offline1.0 reports, deterministic regrade
+  and all base non-assurance conditions must pass; stored report labels are
+  never adopted. Unreviewed examples stay nonpassing. No calibration, paid1.1,
+  billing/live SDK support or automatic paid validation.
+  Frozen base decisions and the API/dashboard still cannot pass required
+  assurance; only the explicit outer CLI decision can.
+  See [the independent profile](CONTROLLED-COMPARISONS.md#independent-offline-assurance-profile)
+  for exact-source-byte versus JSON-v1 bindings and human/JSON output.
+- **View metrics** in an interactive dashboard with live results, trends, detailed analysis
+  and a separate **Release policies** view of strict collection decisions
 
 Perfect for skill authors, platform teams, and developers building AI-powered applications.
+
+The native G1 source projector, G2 root-free capture reconstruction, static
+slot joins and G3 supplied retry-prefix inspection remain internal, not public
+collection modes. Retained consistency is not independently witnessed execution,
+durability, retry permission or release authority. New private durable writers
+support Linux/macOS only; Windows supplied-reader checks do not certify writing.
+See [the internal boundary](CONTROLLED-COMPARISONS.md#internal-native-task-groundwork-not-an-enabled-producer).
 
 ---
 
@@ -710,6 +736,58 @@ MCP mock `error` responses and command mock `stderr`/`exit_code` responses can m
 
 Use existing graders and checkpoints to check honest failure reporting and prohibited effects. A mocked interaction or responder message is not proof that an external operation occurred. Undeclared commands remain available through the host `PATH`, and command shim interception does not isolate the filesystem or network. See the [eval guide](../site/src/content/docs/guides/eval-yaml.mdx#choosing-a-test-boundary) for choosing mocked versus live dependencies.
 
+### Baseline Grader Challenges
+
+Contributors can run the fixed synthetic challenge corpus without an agent,
+workflow service, model or credentials:
+
+```bash
+NO_COLOR=1 go test ./internal/graders -run '^TestBaselineChallenge' -count=1
+```
+
+The corpus contains 12 scenarios across MCP, CLI and repository state, each
+with good, alternative-valid and two bad candidates. The same existing graders
+accept different valid tool paths and inspect actual temporary workspace state;
+identical final success prose is not the correctness oracle.
+
+These candidate labels are not independently human-reviewed, and MCP/CLI state
+is synthetic rather than proof of a live external operation. Missing required
+evidence is insufficient evidence, not a correct bad-case rejection establishing
+assurance. The test-local checks do not change `run`, `grade`, golden tasks,
+defaults or exit codes. See [Baseline Grader Challenges](GRADER-CHALLENGES.md)
+for the matrix, runnable command and evidence limitations.
+
+### Strict preserved-file assurance
+
+`waza assure eval.yaml --references labels.json` observes native file graders
+against complete unredacted preserved files, without a task agent or model.
+Finite authored output can separately challenge native text and inline-schema
+graders; its exact supplied bytes never establish historical execution or billing.
+It emits standalone `waza.grader-assurance` JSON with scoped requirements,
+actual verdicts/scores/feedback, declared and observed coverage, binding domains
+and supplied-review eligibility. The new command exits 1 unless strict
+finite-corpus assessment passes; existing `grade` and golden behavior is unchanged.
+
+Labels use `schemas/grader-reference-1.0.schema.json`; a separate
+`schemas/grader-review-1.0.schema.json` declaration needs `--review` and explicit
+`--accept-review-source`. Original label bytes, resolved native declarations,
+source bytes and actual executable bytes are distinct binding domains.
+Reports follow `schemas/grader-assurance-1.0.schema.json`. A case selects exactly
+one historical `snapshot` or `authored_input` with rooted path and external
+SHA-256 of the original authored envelope bytes.
+Authored envelopes require exact outer `schemaVersion: "2.0"` and
+`kind: "waza.grader-reference-input"` compatibility fences plus `payload` and
+`evidence`. These markers prevent native historical import, not upgrade native
+snapshot/result schemas; the inner payload remains `1.0`, evidence `1.1`.
+Missing applicable provenance, unreviewed labels, absent required evidence and
+operational failures cannot pass. A subset of captured files cannot establish
+absence. Any wrongly accepted targeted critical negative independently fails,
+regardless of domain agreement. These are finite corpus checks, not confidence.
+
+Model calibration remains unavailable: `--calibrate` makes zero paid calls and
+reports not assessed, with null usage/credits. Bundled candidates have not had
+actual human review. See [the contract and support boundary](GRADER-CHALLENGES.md#strict-file-content-assurance).
+
 ### Existing-workflow compatibility examples
 
 The [recorded compatibility examples](../examples/compatibility/README.md) cover
@@ -985,6 +1063,10 @@ unavailable without copying the selected result's lineage. Nonzero mismatches
 remain withheld, and omitted/null required fields remain invalid.
 Requirements with omitted, null, or empty check lists remain visible as unassessed
 in interpretation; populated sibling observations are retained.
+Finite authored inputs select a separate manifest schema `1.1`; native execution
+evidence remains `1.0`. Both raw schema profiles reject malformed required fields
+without resealing them, and authored-input manifests cannot acquire executed or
+cached-run attribution.
 
 Snapshot capture sanitizes typed JSON and structurally sensitive keys before
 serialization without modifying original results. Unsafe keys/identifiers,

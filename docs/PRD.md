@@ -93,6 +93,31 @@ records the research, prototype boundaries, and proposed architecture.
 
 ## User Personas
 
+### Grader Assurance Scope (#661)
+
+The initial integrated assurance path is an offline preserved-file/finite-output
+challenge workflow, reusing native graders and approved scoped requirement/evidence
+contracts. Reports distinguish actual observations, finite-case label agreement,
+critical false acceptance, missing coverage, exact binding domains and supplied
+current-source review eligibility. Every selected task, including requirement-free
+tasks, must have mapped and covered requirements for strict corpus pass. Existing grader defaults, exits, golden tasks
+and skill flows remain unchanged. Bundled labels are unreviewed; declarations do
+not authenticate human review. Unknown input completeness and absence from a
+subset cannot become assurance success.
+
+The independent authored-output profile is evaluator-supplied finite text,
+not historical execution, complete tool evidence or observed billing. Native
+historical consumers reject its exact outer `schemaVersion: "2.0"` and
+`kind: "waza.grader-reference-input"` compatibility fences; payload `1.0` and
+manifest `1.1` remain independent, not native historical schema upgrades.
+Strict reports bind original label/envelope bytes
+and separate reviewed-source eligibility from actual native agreement.
+
+Paid model calibration and final dashboard/example delivery remain acceptance work.
+Selecting an unavailable calibration plan records not assessed with zero executions
+and null observed usage/credits; it is not measured calibration or confidence.
+`max_judge_executions` never bounds SDK follow-up billable calls or spend.
+
 ### Workflow Author
 - **Role:** Developer evaluating MCP, CLI or repository workflows
 - **Goals:** Author scenario suites without an unrelated `SKILL.md`, retaining optional skill/custom-agent context
@@ -191,6 +216,7 @@ Port existing Python waza functionality to Go for single-binary distribution.
 | E1-02 | As a developer, I can initialize new eval suites with `waza init` | Creates compliant directory structure |
 | E1-03 | As a developer, I can create new skills with `waza new` | Scaffolds skill structure, supports --output-dir flag |
 | E1-04 | As a developer, I can compare results across models with `waza compare` | Loads multiple result files, generates comparison report |
+| E1-04a | As a release owner, I can explicitly select a precommitted fixed-design paired comparison without changing legacy gates | Source-bound offline mock/native-text planning and collection; independently versioned schemas and strict journal/raw-result admission; full/partial trial/attempt accounting; first-attempt versus retry recovery; golden veto; distinct missing assurance/golden/billing and invalid/inconclusive decisions; separate API/dashboard. Additive explicit offline assurance contract, retained actual-response ledger, fresh per-arm finite-authored-output qualification and deterministic regrade can pass only the outer decision with all base non-assurance conditions satisfied; frozen base 1.0 required-assurance decisions/API/dashboard remain nonpassing. Current separately supplied review-source acceptance is not authenticated human review; examples remain unreviewed. Internal G1 source projection, G2 root-free reconstruction, static slot joins and G3 supplied retry-prefix inspection do not enable a public native producer or establish execution/durability/permission authority. New private durable writers support Linux/macOS only, not Windows. No live SDK, calibration, paid1.1/billing support or automatic paid validation (#665). |
 | E1-05 | As a developer, I can use all 8 grader types | code, model, regex, file, keyword, json, script, composite |
 | E1-06 | As a developer, I can execute against Copilot SDK | Full integration with streaming responses |
 | E1-07 | As a developer, I can use verbose mode for debugging | Real-time conversation display |

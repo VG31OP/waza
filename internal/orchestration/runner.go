@@ -50,9 +50,12 @@ type snapshotPublisher interface {
 //
 // Deprecated alias: TestRunner is provided for backward compatibility.
 type EvalRunner struct {
-	cfg     *config.EvalConfig
-	engine  execution.AgentEngine
-	verbose bool
+	cfg              *config.EvalConfig
+	requestFiles     RequestFiles
+	requestInputs    RequestInputs
+	engine           execution.AgentEngine
+	verbose          bool
+	controlledOutput func(string)
 
 	// newClassifier builds a responder classifier for a task. Overridable in
 	// tests; defaults to a responder backed by the runner's engine.
@@ -1049,13 +1052,23 @@ func (r *EvalRunner) executeRun(ctx context.Context, tc *models.TestCase, runNum
 }
 
 func (r *EvalRunner) executeAttempt(ctx context.Context, tc *models.TestCase, runNum, attempt int) models.RunResult {
+	return r.executeAttemptWithRequest(ctx, tc, runNum, attempt, nil, false)
+}
+
+func (r *EvalRunner) executeRunWithAttempt(ctx context.Context, tc *models.TestCase, runNum, attempt int, prepared *execution.ExecutionRequest) models.RunResult {
+	return r.executeAttemptWithRequest(ctx, tc, runNum, attempt, prepared, attempt > 0)
+}
+
+func (r *EvalRunner) executeAttemptWithRequest(ctx context.Context, tc *models.TestCase, runNum, attempt int, prepared *execution.ExecutionRequest, controlled bool) models.RunResult {
 	startTime := time.Now()
 	var req *execution.ExecutionRequest
 	var resp *execution.ExecutionResponse
 	var err error
 	diagnosticCategory := "setup"
 	returnWithArtifacts := func(run models.RunResult) models.RunResult {
-		run.Attempts = attempt
+		if attempt > 0 {
+			run.Attempts = attempt
+		}
 		if resp != nil {
 			if run.ToolEvents == nil {
 				run.ToolEvents = buildToolEvents(copilotevents.ToSDK(resp.Events))
@@ -1080,7 +1093,10 @@ func (r *EvalRunner) executeAttempt(ctx context.Context, tc *models.TestCase, ru
 	}
 
 	// Prepare execution request
-	req, err = r.buildExecutionRequest(tc)
+	req = prepared
+	if req == nil {
+		req, err = r.buildExecutionRequest(tc)
+	}
 	if err != nil {
 		return returnWithArtifacts(models.RunResult{
 			RunNumber:  runNum,
@@ -1127,6 +1143,15 @@ func (r *EvalRunner) executeAttempt(ctx context.Context, tc *models.TestCase, ru
 	execCtx, cancelExec := context.WithTimeout(turnCtx, timeout)
 	diagnosticCategory = "execution"
 	resp, err = execution.ExecuteRecorded(execCtx, r.engine, req)
+	if controlled && err == nil && execCtx.Err() != nil {
+		err = fmt.Errorf("controlled execution completed after its deadline or cancellation: %w", execCtx.Err())
+	}
+	if controlled && err == nil && resp == nil {
+		err = fmt.Errorf("controlled execution returned no actual response")
+	}
+	if controlled && err == nil && resp != nil && r.controlledOutput != nil {
+		r.controlledOutput(resp.FinalOutput)
+	}
 	cancelExec()
 	if err != nil {
 		return returnWithArtifacts(models.RunResult{
@@ -1493,11 +1518,14 @@ func (r *EvalRunner) captureFailureArtifacts(run *models.RunResult) {
 
 func (r *EvalRunner) buildExecutionRequest(tc *models.TestCase) (*execution.ExecutionRequest, error) {
 	// Load resource files
+	r.setRequestInputRole("context_fixture")
 	resources, err := r.loadContextFixtureResources(tc)
 	if err != nil {
 		return nil, err
 	}
+	r.setRequestInputRole("resource")
 	resources = append(resources, r.loadResources(tc)...)
+	r.setRequestInputRole("instruction")
 	instructions, instructionResources, err := r.loadInstructionFiles(tc)
 	if err != nil {
 		return nil, err
@@ -1876,7 +1904,7 @@ func (r *EvalRunner) loadResources(tc *models.TestCase) []execution.ResourceFile
 				continue
 			}
 
-			content, err := os.ReadFile(fullPath)
+			content, err := r.inputFiles().ReadFile(fullPath)
 			if err != nil {
 				// Log error but continue - let the test fail if resource is critical
 				fmt.Fprintf(os.Stderr, "Warning: failed to load resource file %s: %v\n", fullPath, err)
@@ -1893,12 +1921,16 @@ func (r *EvalRunner) loadResources(tc *models.TestCase) []execution.ResourceFile
 }
 
 func (r *EvalRunner) loadContextFixtureResources(tc *models.TestCase) ([]execution.ResourceFile, error) {
-	return LoadContextFixtureResources(tc, r.cfg.SpecDir())
+	return loadContextFixtureResources(tc, r.cfg.SpecDir(), r.inputFiles())
 }
 
 // LoadContextFixtureResources reads local fixtures with runtime containment and
 // symlink rules. It does not create a workspace or initialize an engine.
 func LoadContextFixtureResources(tc *models.TestCase, baseDir string) ([]execution.ResourceFile, error) {
+	return loadContextFixtureResources(tc, baseDir, requestFilesInputs{nativeRequestFiles{}})
+}
+
+func loadContextFixtureResources(tc *models.TestCase, baseDir string, files RequestInputs) ([]execution.ResourceFile, error) {
 	fixtureValue, ok := tc.Stimulus.Metadata["fixture"]
 	if !ok {
 		return nil, nil
@@ -1938,17 +1970,17 @@ func LoadContextFixtureResources(tc *models.TestCase, baseDir string) ([]executi
 		return nil, fmt.Errorf("inputs.context.fixture path %q escapes spec directory", fixturePath)
 	}
 
-	info, err := os.Stat(fullPath)
+	kind, err := files.Kind(fullPath)
 	if err != nil {
 		return nil, fmt.Errorf("reading inputs.context.fixture %q: %w", fixturePath, err)
 	}
 
 	// Re-check containment using symlink-resolved paths.
-	realFullPath, err := filepath.EvalSymlinks(fullPath)
+	realFullPath, err := files.Resolve(fullPath)
 	if err != nil {
 		return nil, fmt.Errorf("resolving symlinks for inputs.context.fixture %q: %w", fixturePath, err)
 	}
-	realBaseDir, err := filepath.EvalSymlinks(absBaseDir)
+	realBaseDir, err := files.Resolve(absBaseDir)
 	if err != nil {
 		return nil, fmt.Errorf("resolving symlinks for spec directory: %w", err)
 	}
@@ -1956,8 +1988,8 @@ func LoadContextFixtureResources(tc *models.TestCase, baseDir string) ([]executi
 		return nil, fmt.Errorf("inputs.context.fixture path %q escapes spec directory", fixturePath)
 	}
 
-	if !info.IsDir() {
-		content, err := os.ReadFile(fullPath)
+	if kind != RequestInputDirectory {
+		content, err := files.ReadFile(fullPath)
 		if err != nil {
 			return nil, fmt.Errorf("reading inputs.context.fixture file %q: %w", fixturePath, err)
 		}
@@ -1968,14 +2000,11 @@ func LoadContextFixtureResources(tc *models.TestCase, baseDir string) ([]executi
 	}
 
 	var resources []execution.ResourceFile
-	err = filepath.WalkDir(fullPath, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.Type()&os.ModeSymlink != 0 {
+	err = files.Walk(fullPath, func(path string, kind RequestInputKind) error {
+		if kind == RequestInputSymlink {
 			return nil
 		}
-		if d.IsDir() {
+		if kind == RequestInputDirectory {
 			return nil
 		}
 
@@ -1986,7 +2015,7 @@ func LoadContextFixtureResources(tc *models.TestCase, baseDir string) ([]executi
 		if rel == "." {
 			return nil
 		}
-		content, err := os.ReadFile(path)
+		content, err := files.ReadFile(path)
 		if err != nil {
 			return err
 		}
@@ -2030,7 +2059,7 @@ func (r *EvalRunner) loadInstructionFiles(tc *models.TestCase) ([]execution.Inst
 			return nil, nil, err
 		}
 
-		content, err := os.ReadFile(fullPath)
+		content, err := r.inputFiles().ReadFile(fullPath)
 		if err != nil {
 			return nil, nil, fmt.Errorf("reading instruction file %q: %w", path, err)
 		}

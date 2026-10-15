@@ -87,7 +87,8 @@ func ProbeEvaluationOutcomeSchemaVersion(data []byte) (version string, ok bool, 
 func hasEvaluationOutcomeShape(fields map[string]json.RawMessage) bool {
 	var kind string
 	if raw, exists := fields["kind"]; exists {
-		if err := json.Unmarshal(raw, &kind); err == nil && kind == "waza.preflight" {
+		if err := json.Unmarshal(raw, &kind); err == nil &&
+			(kind == "waza.preflight" || strings.HasPrefix(kind, "waza.release-")) {
 			return false
 		}
 	}
@@ -173,6 +174,11 @@ func LoadEvaluationOutcome(path string) (*EvaluationOutcome, error) {
 // ParseEvaluationOutcome decodes results while preserving declared versions.
 // A missing version retains the legacy reader default, not the writer version.
 func ParseEvaluationOutcome(data []byte, source string) (*EvaluationOutcome, error) {
+	// Outer tasks/runs aliases or duplicates must not hide an authored
+	// manifest from the nested native-profile admission guards.
+	if err := ValidateNativeJSONKeys(data, EvaluationOutcome{}); err != nil {
+		return nil, err
+	}
 	var header struct {
 		SchemaVersion string          `json:"schemaVersion"`
 		Kind          json.RawMessage `json:"kind"`

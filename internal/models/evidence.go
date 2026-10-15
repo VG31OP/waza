@@ -36,8 +36,16 @@ func (m *EvidenceManifest) HasInvalidRequiredObjects() bool { return m.invalidRe
 func (m *EvidenceManifest) HasInvalidSchema() bool { return m.invalidSchema }
 
 var evidenceManifestSchema = sync.OnceValues(func() (*jsonschema.Schema, error) {
+	return compileEvidenceManifestSchema(schemas.EvidenceManifestSchemaJSON)
+})
+
+var referenceInputManifestSchema = sync.OnceValues(func() (*jsonschema.Schema, error) {
+	return compileEvidenceManifestSchema(schemas.ReferenceInputEvidenceManifestSchemaJSON)
+})
+
+func compileEvidenceManifestSchema(source string) (*jsonschema.Schema, error) {
 	var document any
-	if err := json.Unmarshal([]byte(schemas.EvidenceManifestSchemaJSON), &document); err != nil {
+	if err := json.Unmarshal([]byte(source), &document); err != nil {
 		return nil, fmt.Errorf("parsing embedded evidence schema: %w", err)
 	}
 	compiler := jsonschema.NewCompiler()
@@ -50,14 +58,10 @@ var evidenceManifestSchema = sync.OnceValues(func() (*jsonschema.Schema, error) 
 		return nil, fmt.Errorf("compiling embedded evidence schema: %w", err)
 	}
 	return schema, nil
-})
+}
 
 func (m *EvidenceManifest) UnmarshalJSON(data []byte) error {
 	instance, err := jsonutil.Parse(data)
-	if err != nil {
-		return err
-	}
-	schema, err := evidenceManifestSchema()
 	if err != nil {
 		return err
 	}
@@ -67,6 +71,14 @@ func (m *EvidenceManifest) UnmarshalJSON(data []byte) error {
 	decoder.DisallowUnknownFields()
 	unknown := decoder.Decode(&decoded) != nil
 	if err := json.Unmarshal(data, &decoded); err != nil {
+		return err
+	}
+	loadSchema := evidenceManifestSchema
+	if decoded.Version == "1.1" {
+		loadSchema = referenceInputManifestSchema
+	}
+	schema, err := loadSchema()
+	if err != nil {
 		return err
 	}
 	*m = EvidenceManifest(decoded)

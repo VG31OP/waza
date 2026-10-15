@@ -23,8 +23,9 @@ scenario semantics; `2.1` and future majors are not supported scenario versions.
 | Newly generated `results.json` | `schemaVersion` | `1.6` |
 | Historical `results.json` | `schemaVersion` | Declared `1.x`; missing version defaults to `1.4` |
 | Task YAML | No independent version field | Existing legacy format, unchanged |
-| `snapshot.json` | `schemaVersion` | `1.1` |
-| Portable evidence manifest | `version` | `1.0` (independent) |
+| `snapshot.json` | `schemaVersion` | `1.1` (independent artifact) |
+| Portable executed-evidence manifest | `version` | `1.0` (independent) |
+| Authored finite-input manifest | `version` | Explicit `1.1`; not native execution evidence |
 | Dashboard/SSE event envelope | `schemaVersion` | `1.0` |
 | `waza.preflight` report | `schemaVersion` | `1.0` (independent artifact) |
 
@@ -33,7 +34,7 @@ metadata, without a global schema bump or new runtime/exit semantics. Old reader
 can ignore them; a minimum-version note does not enforce requirements.
 `waza preflight` requires a CLI build containing #660. Its report is identified
 by `kind: "waza.preflight"` and is never parsed/discovered as evaluation results.
-See [Offline Eval Preflight](/guides/preflight/) for its states and strict policy.
+See [Offline Eval Preflight](/waza/guides/preflight/) for its states and strict policy.
 
 ## Policy
 

@@ -50,6 +50,15 @@ func Seal(manifest *models.EvidenceManifest) error {
 	if manifest.HasInvalidRequiredObjects() || manifest.HasInvalidSchema() {
 		return Validate(manifest)
 	}
+	if manifest.Version != "" && manifest.Version != Version {
+		return errors.New("evidence: Seal only supports snapshot manifest version 1.0")
+	}
+	if err := models.ValidateNativeEvidenceProfile(manifest); err != nil && manifest.Version != "" {
+		return err
+	}
+	if strings.HasPrefix(manifest.Origin.EvalID, "reference:") {
+		return errors.New("evidence: synthetic reference origins are not native execution evidence")
+	}
 	manifest.Version = Version
 	if manifest.Artifacts == nil {
 		manifest.Artifacts = []models.EvidenceArtifact{}
@@ -63,7 +72,7 @@ func Seal(manifest *models.EvidenceManifest) error {
 }
 
 func Validate(manifest *models.EvidenceManifest) error {
-	if manifest == nil || manifest.Version != Version || manifest.HasUnknownFields() {
+	if manifest == nil || manifest.Version != Version && manifest.Version != ReferenceInputVersion || manifest.HasUnknownFields() {
 		return errors.New("evidence: unsupported or absent manifest version")
 	}
 	if manifest.HasInvalidRequiredObjects() {
@@ -81,6 +90,9 @@ func Validate(manifest *models.EvidenceManifest) error {
 	}
 	if digest.SHA256 != manifest.SHA256 {
 		return errors.New("evidence: manifest identity does not match its content")
+	}
+	if manifest.Version == ReferenceInputVersion {
+		return validateReferenceInputProfile(manifest)
 	}
 	if manifest.SourceManifestSHA256 != "" && !validSHA(manifest.SourceManifestSHA256) {
 		return errors.New("evidence: invalid source manifest SHA256")
@@ -171,7 +183,7 @@ func CompleteOrigin(origin models.EvidenceOrigin) bool {
 
 // Bind checks the selected result row without relabeling cached source lineage.
 func Bind(manifest *models.EvidenceManifest, evalID, taskID string, runNumber, attempts int, cached bool) error {
-	if err := Validate(manifest); err != nil {
+	if err := ValidateNative(manifest); err != nil {
 		return err
 	}
 	origin := manifest.Origin
@@ -246,6 +258,9 @@ func Reference(manifest *models.EvidenceManifest, id string) (models.EvidenceRef
 		return models.EvidenceReference{}, errors.New("evidence: manifest is required")
 	}
 	reference := models.EvidenceReference{Origin: manifest.Origin, ArtifactID: id}
+	if manifest.Version == ReferenceInputVersion {
+		reference.Pointer = "/output"
+	}
 	if _, err := Resolve(manifest, reference); err != nil {
 		return models.EvidenceReference{}, err
 	}
@@ -264,6 +279,9 @@ func Resolve(manifest *models.EvidenceManifest, reference models.EvidenceReferen
 	}
 	if reference.Pointer != "" && !validPointer(reference.Pointer) {
 		return nil, errors.New("evidence: invalid artifact-relative pointer")
+	}
+	if manifest.Version == ReferenceInputVersion && reference.Pointer != "/output" {
+		return nil, errors.New("evidence: authored input references require the relative /output pointer")
 	}
 	for _, artifact := range manifest.Artifacts {
 		if artifact.ID == reference.ArtifactID {

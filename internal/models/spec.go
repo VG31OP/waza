@@ -504,6 +504,15 @@ func ParseEvalSpec(data []byte, path string) (*EvalSpec, error) {
 	return parseEvalSpec(data, path, false, nil)
 }
 
+// ParseCapturedEvalSpecOffline decodes captured bytes with the same offline schema
+// guards as LoadEvalSpecOffline, without reopening the source.
+func ParseCapturedEvalSpecOffline(data []byte, path string) (*EvalSpec, error) {
+	if err := validateCapturedModelSource(data, false); err != nil {
+		return nil, err
+	}
+	return parseEvalSpec(data, path, true, nil)
+}
+
 // ParseEvalSpecOffline examines immutable bytes with offline schema loading.
 // validate checks static configuration when external dependencies block native decode.
 func ParseEvalSpecOffline(data []byte, path string, validate func(string, GraderParameters) error) (*EvalSpec, error) {
