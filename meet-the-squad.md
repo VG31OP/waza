@@ -26,6 +26,7 @@ current. Node.js 22.5 or newer is required.
 ```bash
 npm exec --yes --package=@bradygaster/squad-cli@1.0.0 -- squad doctor
 npm exec --yes --package=@bradygaster/squad-cli@1.0.0 -- squad health --json
+node --test .github/scripts/ralph-triage.test.cjs
 ```
 
 The coordinator and managed templates are Squad 1.0.0; `.mcp.json` pins the same
@@ -54,6 +55,11 @@ Reapply the small project model-policy hook in
 package. Generic managed templates remain upstream-owned; do not maintain a
 second hand-edited model catalog. Re-render generated Team Capabilities with the
 SDK after changing the roster, without rerunning the destructive workflow refresh.
+
+The installed standalone triage script includes Waza-local routing and GitHub API
+fixes. Preserve them when refreshing managed assets unless the upstream release
+already contains them. The regression command above runs in Squad Tools CI and
+checks all specialist routes, ambiguous/duplicate matches, and public/Enterprise API defaults.
 
 Verify config/charter/roster agreement, active casting identities and commit
 manifest integrity, required support charters, live references, and unchanged

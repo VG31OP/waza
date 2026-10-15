@@ -10,6 +10,8 @@
  * for zero-dependency use in GitHub Actions workflows.
  *
  * To verify parity: npm test -- test/ralph-triage.test.ts
+ * Waza regression checks: node --test .github/scripts/ralph-triage.test.cjs
+ * Preserve these local routing/API fixes when refreshing the installed copy.
  */
 'use strict';
 
@@ -326,12 +328,17 @@ function findBestRuleMatch(issueText, rules, roster) {
     if (!agent) return [];
     const match = routeMatch(issueText, rule);
     return match.score > 0 ? [{ rule, agent, ...match }] : [];
-  }).sort((left, right) => right.score - left.score);
+  }).sort((left, right) =>
+    right.score - left.score || right.matchedKeywords.length - left.matchedKeywords.length
+  );
 
   if (scoredRoutes.length === 0) return null;
 
   const bestScore = scoredRoutes[0].score;
-  const bestRoutes = scoredRoutes.filter((candidate) => candidate.score === bestScore);
+  const bestMatchCount = scoredRoutes[0].matchedKeywords.length;
+  const bestRoutes = scoredRoutes.filter((candidate) =>
+    candidate.score === bestScore && candidate.matchedKeywords.length === bestMatchCount
+  );
   const bestAgents = new Set(bestRoutes.map((candidate) =>
     normalizeRouteDestination(candidate.agent.name)
   ));
@@ -357,9 +364,15 @@ function routeMatch(issueText, rule) {
     .filter((token) => !genericWorkTypeTokens.has(token));
   const rawPhrases = [rule.workType, ...workTypeTokens, ...rule.keywords]
     .flatMap((phrase) => phrase.includes('/') ? [phrase, ...phrase.split('/')] : [phrase]);
-  const matchedKeywords = rawPhrases.filter((phrase) =>
-    containsPhrase(issueTokens, tokens(phrase))
-  );
+  const distinctMatches = new Map();
+  for (const phrase of rawPhrases) {
+    const phraseTokens = tokens(phrase);
+    if (containsPhrase(issueTokens, phraseTokens)) {
+      const normalized = phraseTokens.join(' ');
+      if (!distinctMatches.has(normalized)) distinctMatches.set(normalized, phrase);
+    }
+  }
+  const matchedKeywords = [...distinctMatches.values()];
   const score = matchedKeywords.reduce((best, phrase) =>
     Math.max(best, tokens(phrase).length * 100), 0);
 
@@ -406,8 +419,9 @@ function resolveGithubApiBase() {
   const apiUrl = process.env.GITHUB_API_URL;
   if (apiUrl) return apiUrl.replace(/\/+$/, '');
 
-  const serverUrl = process.env.GITHUB_SERVER_URL;
-  if (serverUrl) return `${serverUrl.replace(/\/+$/, '')}/api/v3`;
+  const serverUrl = process.env.GITHUB_SERVER_URL?.replace(/\/+$/, '');
+  if (serverUrl === 'https://github.com') return 'https://api.github.com';
+  if (serverUrl) return `${serverUrl}/api/v3`;
 
   return 'https://api.github.com';
 }

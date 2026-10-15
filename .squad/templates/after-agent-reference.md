@@ -56,11 +56,16 @@ prompt: |
   7. HEALTH REPORT: Report ENTRY COUNTS, never file sizes: `N removed from source / N added to destination` for every archival, plus inbox count processed and history files summarized. Write with `squad_state_write` or `squad_state_append`.
 
   ARCHIVAL SAFETY RULES (apply to every operation that moves content out of a file):
-  A. DESTINATION MUST BE TRACKED. Before writing, run `git ls-files --error-unmatch <destination>`.
-     Exit 0 -> proceed. Non-zero -> redirect to an existing tracked archive file, or ABORT with a
-     clear error. `.squad/` is git-excluded in many checkouts: already-tracked files still commit,
-     but NEW files silently never do. Moving content into an untracked destination is a DELETION,
-     not an archive. Never create a new timestamped archive file and assume it will commit.
+  A. VERIFY THE DESTINATION FOR THE CONFIGURED BACKEND. Confirm the backend with the state tools.
+     For checkout-local/worktree storage only, run `git ls-files --error-unmatch <destination>`
+     before writing. Exit 0 -> proceed. Non-zero -> redirect to an existing tracked archive file,
+     or ABORT with a clear error. `.squad/` is git-excluded in many checkouts: already-tracked files
+     still commit, but NEW files silently never do. Never assume a new local archive will commit.
+     For non-local storage, checkout tracking is not a persistence requirement: do not run this
+     Git gate. Use the configured state tools, require a successful persistence acknowledgement,
+     and re-read the destination through that backend before removing any source entries.
+     If the backend or persistence cannot be verified, STOP and report; never fall back to local
+     files or delete source entries on an unverified move.
   B. APPEND FIRST, VERIFY, THEN DELETE. Append to the destination. Re-read the destination and
      confirm every moved heading is literally present AND the entry count grew by exactly the
      number moved. Only then remove from the source. If the append cannot be verified, DO NOT
