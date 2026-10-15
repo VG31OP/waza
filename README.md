@@ -153,6 +153,17 @@ waza get evals/my-skill/eval.yaml
 # Challenge native file/output checks with evaluator-only references (offline)
 waza assure eval.yaml --references labels.json
 
+# Inspect its standalone JSON locally in the dashboard's Assurance view.
+# Bundled authored-output examples remain unreviewed: expected exit 1/not assessed.
+# Calibrated 1.1 claims require explicit inspector selection.
+# Existing `assure --calibrate` remains unavailable and makes zero paid calls.
+# Executable provenance observes on-disk path bytes, not the mapped image,
+# running RAM or authenticity; unavailable provenance cannot pass.
+# A separate `assure calibrate` command requires reviewed inputs and explicit
+# --accept-paid-calls; it can incur provider usage and is never enabled by default.
+# Internal preserved-native mechanical assurance has a separately selected 1.2
+# API/profile; default CLI and dashboard readers do not admit it automatically.
+
 # Note: 'generate' is available as an alias for 'new' (see below for new command)
 # Note: Custom agents (.agent.md) are supported — see https://microsoft.github.io/waza/guides/custom-agents/
 
@@ -1506,7 +1517,44 @@ Scenario `2.0` requires a nonblank `scenario` and may omit `skill`.
 Scenario `2.0` bypasses result caching with an explicit notice because external
 workflow dependencies are not fully fingerprinted; legacy caching is unchanged.
 
+Scenario-bearing **evals only** explicitly select `schemaVersion: "2.0"` and
+`scenario: <workflow-name>`. Only this exact scenario version is supported;
+older executables reject it before running. Results and tasks remain `1.x`,
+so existing result readers and the dashboard keep working. Optional `skill:`
+retains existing skill/custom-agent context and discovery precedence. Without
+a target or explicit skill directories, scenarios disable ambient skill loading.
+An explicit empty task `skill_directories: []` disables discovery for that task;
+`--no-skills` overrides every task. Legacy suites keep their existing defaults.
+Scenario `2.0` bypasses result caching with an explicit notice because external
+workflow dependencies are not fully fingerprinted; legacy caching is unchanged.
+
 Remote grader refs use Go-module-style paths: `<host>/<owner>/<repo>[/path][#export]@<version>`. The remote module must provide a `waza.registry.yaml` manifest and export a grader preset. Config-only grader presets expand to built-in grader types by default; remote program graders require explicit trust with `waza registry add --allow-exec` or interactive confirmation. Run `waza get eval.yaml` after manually adding or changing refs so `waza.lock` records the resolved commit and digest.
+
+`waza assure` and the separately selected `waza assure calibrate` materialize
+locked grader presets from the local cache only, rechecking digest, trust and
+offline schema/override admission after preflight. Missing or changed pins/cache
+fail without fetching. Original eval bytes retain the reference binding;
+resolved-config and declaration digests bind the materialized configuration.
+Direct assurance API references remain unsupported, and materialization neither
+authenticates presets nor authorizes paid calls.
+
+`waza assure calibrate --output` uses private sibling staging and atomic
+replacement on Unix only. Other platforms, including Windows, reject an explicit
+`--output` with exit 2 before preflight, producer, paid notice or engine creation;
+omit the flag and capture stdout instead. Default stdout remains available on
+every platform.
+
+Private calibration consumes bounded source-bound rubric copies through canonical
+native construction, rather than reopening retained audit files. Selected native
+metadata identifies `acquired:sha256:<digest>`; ordinary path/builtin APIs are
+unchanged. Retained-source decoding follows the same acquisition boundary. Audit
+files stay in the worktree cache. The shared store retains worktree, cache and
+private-directory roots for audit creation and cleanup, checking cache/private
+directory identities before and after writes. Changed namespaces fail closed;
+unknown residual files are retained with an explicit cleanup failure. POSIX
+checks reject group/world-writable cache parents and private children with
+group/other mode bits. These retained-root checks do not certify Windows ACLs,
+cache confidentiality or whole-filesystem ancestry.
 
 `results.json` is currently emitted at `schemaVersion` `1.6`. Version `1.1` added per-turn checkpoints (`runs[].checkpoints[]`, see #358) and the normalized `runs[].tool_events[]` array (`turn`, `sequence`, `tool_call_id`, `tool_name`, `args`, `result`, `success`, `error`, `duration_ms`; see #366). Version `1.2` added `runs[].snapshot_path` for `waza run --snapshot` artifacts (#367) and the eval-level `adversarial:` block consumed by `waza adversarial --spec` (#365). Version `1.3` adds `session_digest.tool_policy_mode` and `tool_policy_denials` (#585). Version `1.4` adds sanitized `runs[].command_invocations` for declarative CLI mocks (#634). Version `1.5` adds `tasks[].stats.pass_rate_ci` and `summary.statistics.success_rate_ci` and `pass_hat_k`, and stops writing `is_significant`. Version `1.6` adds optional `runs[].evidence` and `runs[].requirement_explanations`. See [docs/PRD](docs/PRD.md) and [schema-changes](site/src/content/docs/reference/schema-changes.md) for details.
 
@@ -1700,8 +1748,9 @@ selects `row-2`, including when regrading with `--task row-2`. Explicit `id` and
 lexically within the eval directory and remain inside after symlinks resolve.
 Contained links and relative sources under an aliased eval directory are allowed;
 an alternate physical absolute spelling outside the lexical alias root is rejected.
-This is a bounded path check, not a universal physical-equivalence, retained-root,
-or race-free guarantee.
+The final CSV open and parse use a retained eval-directory root, preventing a
+replacement symlink from redirecting the read outside it. This does not freeze
+concurrent file contents or provide universal physical equivalence.
 
 **Example task prompt using CSV variables:**
 
@@ -2043,7 +2092,7 @@ See the complete [Grader Reference](docs/GRADERS.md) for detailed configuration 
 - **[Getting Started](docs/GETTING-STARTED.md)** - Complete walkthrough: init → new → run → check
 - **[Demo Guide](docs/DEMO-GUIDE.md)** - 7 live demo scenarios for presentations
 - **[Grader Reference](docs/GRADERS.md)** - Complete grader types and configuration
-- **[Grader Challenges and Assurance](docs/GRADER-CHALLENGES.md)** - Offline native file/output verification; bundled labels remain unreviewed, paid calibration unavailable
+- **[Grader Challenges and Assurance](docs/GRADER-CHALLENGES.md)** - Offline native checks and separately selected calibration; bundled labels remain unreviewed, paid calls require explicit acknowledgment
 - **[Tutorial](docs/TUTORIAL.md)** - Getting started with writing skill evals
 - **[CI Integration](docs/SKILLS_CI_INTEGRATION.md)** - GitHub Actions workflows for skill evaluation
 - **[Token Management](docs/TOKEN-LIMITS.md)** - Tracking and optimizing skill context size

@@ -28,13 +28,23 @@ scenario semantics; `2.1` and future majors are not supported scenario versions.
 | Authored finite-input manifest | `version` | Explicit `1.1`; not native execution evidence |
 | Dashboard/SSE event envelope | `schemaVersion` | `1.0` |
 | `waza.preflight` report | `schemaVersion` | `1.0` (independent artifact) |
+| `waza.grader-reference` labels / `waza.grader-review` declaration | `schema_version` | Exact `1.0` (independent profiles) |
+| `waza.grader-assurance` report | `schema_version` | Separately selected `1.0`, `1.1`, or `1.2` |
 
 Optional task `requirements` introduced by #660 are descriptive v1-compatible
 metadata, without a global schema bump or new runtime/exit semantics. Old readers
 can ignore them; a minimum-version note does not enforce requirements.
 `waza preflight` requires a CLI build containing #660. Its report is identified
 by `kind: "waza.preflight"` and is never parsed/discovered as evaluation results.
-See [Offline Eval Preflight](/waza/guides/preflight/) for its states and strict policy.
+See [Offline Eval Preflight](../../guides/preflight/) for its states and strict policy.
+
+The independent grader profiles use strict `schema_version` admission, not
+the native same-major minor-version policy below. Offline `1.0`, calibrated
+`1.1` and preserved-native `1.2` are separate operations; default readers reject
+unselected profiles. Missing versions, unknown members and implicit migration
+cannot select them. These profiles do not bump native eval/result/snapshot
+versions or enable a public qualification lifecycle.
+See [Separate grader-assurance reports](../schema/#separate-grader-assurance-reports).
 
 ## Policy
 
@@ -44,6 +54,19 @@ Schema versions use `MAJOR.MINOR` format with no patch component.
 - **MAJOR** changes are breaking. Legacy readers refuse artifacts from a different major version and point to `waza migrate <file>`; scenario-aware readers additionally accept explicitly selected scenario eval `2.0`.
 - Missing `schemaVersion` in legacy eval/result inputs continues to default to `1.4`. Declared same-major versions remain accepted and unchanged on read/re-save; unknown fields are warned about. Scenario-bearing evals must explicitly select `2.0` and cannot omit the version. Task YAML has no independent version field.
 - New evaluations and regrades write results `1.6`, independently of their eval input version. This does not upgrade legacy eval defaults or task formats. Scenario scaffolds explicitly emit eval `2.0`; scenario readers reject unknown eval/config fields instead of granting forward-minor compatibility. Reading/re-saving historical results does not invent reliability metadata or upgrade their declared version.
+
+Legacy results and snapshots without consumed evidence retain ordinary JSON
+decoding for opaque tool arguments, grader details and unknown fields, including
+duplicate keys and nesting beyond 64 levels in those opaque values. Known typed
+DTO keys still require exact spelling, reject duplicates and retain the
+64-level structural limit; this is not restoration of every historical
+last-key-wins behavior. Any non-null evidence profile invokes strict admission
+on the original whole document, so overwrites cannot hide authored provenance.
+Strict identity readers reject unpaired Unicode surrogate escapes instead of
+normalizing them to replacement characters.
+Transcript events use their actual wire keys for this fence, closing the
+previous custom-decoder case-alias blind spot without changing serialized
+field order or bytes.
 
 ## Migration command
 

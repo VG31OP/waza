@@ -71,8 +71,23 @@ calibration.
 grader outputs with fixed labels and emits a scoped `waza.grader-assurance`
 report. It is offline and never runs a task agent. A supplied current-review
 document needs separate explicit source acceptance; bundled labels remain
-unreviewed. Exact source/declaration/executable identities, complete unredacted
+unreviewed. Exact source/declaration bindings and an observed executable-path
+digest, complete unredacted
 files and good/alternative/critical-bad coverage are independent gates.
+
+Both `assure` and `assure calibrate` materialize locked grader presets from the
+local cache only, rechecking digest, trust and offline schema/override admission
+after preflight. Missing or changed pins/cache fail without fetching. Original
+eval bytes retain the reference; resolved-config and declaration digests bind
+the materialized configuration. Direct API references remain unsupported, even
+with a supplied native type. This neither authenticates presets nor authorizes
+paid calls.
+
+The executable digest hashes the on-disk file opened at `os.Executable()` at
+observation time, not the mapped running image, RAM or authenticity. Replacement
+can change the observed bytes or make acquisition fail. Missing applicable
+provenance remains unavailable, with no zero or startup-cache digest fallback.
+The existing portable algorithm and report domain are unchanged.
 
 Finite authored output separately supports native text and inline JSON-schema
 checks. Labels select exactly one historical snapshot or authored document;
@@ -89,10 +104,109 @@ evidence and operational errors never count as correct negative rejection.
 Any wrongly accepted targeted critical bad case fails independently of average
 agreement. These finite cases supply no universal confidence guarantee.
 
-Model calibration is currently unavailable: `--calibrate` reports not assessed,
+The internal mechanical observation resolver has no eval-context fallback:
+snapshot-backed Diff observations need a caller-supplied evaluator-resolved
+`context_dir`. Omission returns `not_assessed` before consulting unrelated
+working-directory files. Ordinary eval Diff defaults, explicitly supplied
+relative bases and snapshot-free observations are unchanged.
+
+The existing offline `assure --calibrate` remains unavailable: it reports not assessed,
 makes zero paid calls and leaves usage/credits null. See the
 [CLI reference](/reference/cli/#waza-assure) and
 [exact contract](https://github.com/microsoft/waza/blob/main/docs/GRADER-CHALLENGES.md#strict-file-content-assurance).
+
+The separate evaluator API `assurance.Calibrate` requires explicit selection,
+a bound local rubric, frozen native declarations and inputs, a construction-only
+factory and successful pre-initialization notice. It has no default factory.
+Freezing copies matcher declarations without compiling regular expressions or
+loading external schema references, including in unselected eval, task and
+checkpoint graders. Nested JSON numbers retain their exact values; compilation
+and resource policy remain the responsibility of the selected validation path.
+Preserved workspace verification reuses validated manifest metadata and one
+path policy within each call while still checking every required file's locator,
+raw and typed content digests, completeness and redaction state.
+Independent native callbacks, lifecycle diagnostics and independent received-event/
+accounting attribution remain distinct from native candidate verdicts; missing
+or operational evidence cannot establish strict pass. Report-1.1 claims require
+separate explicit [dashboard inspection](/waza/guides/dashboard/#grader-assurance).
+Neither schema admission nor a finite agreement authenticates human review,
+proves exhaustive server isolation or authorizes paid calls.
+
+The distinctly selected `waza assure calibrate` command supplies an owned factory
+only for that operation. Required references/review/current-source acceptance and
+rubric root remain independent of `--accept-paid-calls`, which defaults to false.
+Without acknowledgment its notice refuses execution with an empty ledger/null
+billing, on both interactive and noninteractive input. There is no prompt or
+generic `--yes` fallback. Its admitted job count is not a provider spending cap.
+The positive cooperative timeout defaults to 10m; partial reports remain available
+with execution errors. Explicit `--output` requires Unix atomic replacement;
+other platforms, including Windows, refuse it before preflight or paid calls.
+Omit the flag and capture stdout instead. See the [explicit calibration flags](/waza/reference/cli/#waza-assure-calibrate)
+for error exits, source/provider boundaries and output persistence.
+
+Private calibration and retained-source decoding use bounded, content-bound
+acquired copies through the same native parsers and formatter, without reopening
+audit-copy paths. Selected rubric metadata is `acquired:sha256:<digest>`;
+ordinary path/builtin APIs retain `file:`/`builtin:` metadata. Selected acquired
+task decoding additionally requires an explicit nonblank `id` and refuses
+`prompt_file` rather than reopening a pathname; ordinary task-loading APIs
+retain their existing behavior.
+
+The shared audit store retains worktree, `.cache` and private-directory
+`os.Root` handles for creation and cleanup rather than reopening absolute paths.
+Cache and private-child identities are compared before and after audit writes;
+replacement refuses further writes, and cleanup cannot delete
+replacement-namespace files. POSIX checks reject group/world-writable cache
+parents and private children with group/other mode bits; changed permissions
+that violate these checks fail closed. Unknown residual files are retained with
+an explicit cleanup failure. Judge/source decoding still consumes digest-bound
+acquired bytes, not audit paths.
+
+Consumption integrity does not certify cache confidentiality. Retained-root
+namespace custody and POSIX-mode checks do not establish whole-filesystem
+ancestry or Windows ACLs. Windows mode bits are not ACL certification, and
+cross-platform source support is not evidence of actual Windows execution.
+
+### Separately selected preserved-native assurance
+
+The offline evaluator API `assurance.VerifyPreserved` selects report `1.2` and
+`preserved_native_mechanical_assurance`; `assurance.ParsePreservedReport` is its
+separate strict reader. Default CLI assurance, offline `Verify`, calibrated
+`1.1` reading and dashboard inspection do not select this profile.
+
+It challenges the current selected grader against preserved artifacts. The
+native-declaration binding identifies that current declaration, not the grader
+or source version used in an earlier execution. Historical grader correspondence
+is not certified.
+
+It checks actual snapshot bytes, exact native origins/artifact locators and
+digests, complete unredacted selected evidence and consumed raw field presence
+before invoking existing tool-call, tool-constraint, action-sequence and
+required-file existence/content graders. Canonical event arguments and
+normalized digest arguments retain their native differences. Complete explicit
+empty tapes are specific to this operation; the nonempty-tape importer is
+unchanged. Missing/null arguments are not an empty object.
+
+Selected files cannot prove absence. Adapter limits are 16 MiB raw snapshot,
+4 MiB decoded bytes per file, 8 MiB selected-file total and 256 selected paths.
+Unsupported modes remain not assessed. Unknown historical collector completeness
+cannot be promoted by synthetic complete fixtures.
+
+Strict pass requires eligible supplied review, verified provenance, complete
+scoped coverage and actual mechanical agreement; targeted critical false
+acceptance independently fails. Calibration remains not selected with null
+billing and no ledger, even if requested. No engine factory or paid execution
+is involved. See the
+[preserved-native boundary](https://github.com/microsoft/waza/blob/main/docs/GRADER-CHALLENGES.md#separately-selected-preserved-native-observations).
+
+Internal engine-free qualification helpers additionally check bounded original
+source custody, immutable projections and capture-only equivalence. They are
+unexported preparation primitives, not a new CLI mode, public report format,
+deployed backend, production review/currentness authority or task execution path.
+Private local journal and injected freshness controls preserve original artifact
+bytes, sync ordering and nonpass uncertainty within an accepted local-host scope;
+they do not establish global reservation or authenticate current human review.
+See the [internal boundary](https://github.com/microsoft/waza/blob/main/docs/GRADER-CHALLENGES.md#private-engine-free-qualification-primitives).
 
 ---
 

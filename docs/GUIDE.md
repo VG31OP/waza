@@ -185,10 +185,12 @@ replace them with physical directories or choose a physical `--output` path.
 Relative output starts at the retained working directory, and absolute output
 is checked from the filesystem root (with verified literal macOS `/var` and
 `/tmp` system aliases). Directory handles are retained for writes, so replacing
-a parent path cannot redirect creation. Renaming an admitted directory may move
-its outputs; earlier directories/files can remain after a later error. This does
-not add rollback or a filesystem sandbox, and other scaffolding commands are
-unchanged.
+a parent path cannot redirect creation. A failed creation or write rolls back
+files created by that attempt through the retained parents, including a partial
+file. Replaced files are preserved and cleanup failures are reported explicitly;
+empty directories may remain. Renaming an admitted directory may move its
+outputs. This is not a filesystem sandbox or whole-directory transaction, and
+other scaffolding commands are unchanged.
 
 The repository template uses three file graders: report outcome, absence of
 `private.txt`, and exact final `inventory.txt` bytes. The third grader fails on
@@ -333,8 +335,9 @@ Explicit CSV IDs/names and template variables retain their existing precedence.
 Command-side CSV loading also rejects resolved symlink escapes while allowing
 contained links. An aliased eval base accepts relative contained sources, but an
 alternate physical absolute spelling outside its lexical alias root is rejected.
-This does not provide universal physical equivalence, a retained-root, or a
-race-free guarantee.
+CSV parsing opens through a retained eval-directory root, so a replacement
+symlink cannot redirect the final read outside that root. This does not freeze
+concurrent file contents or provide universal physical equivalence.
 Live MCP settings use the runtime's pure decoder, so malformed headers or
 environment maps fail even though live availability remains unresolved.
 Model availability, credentials, conditional checkpoint execution, interpreter
@@ -759,6 +762,14 @@ for the matrix, runnable command and evidence limitations.
 
 ### Strict preserved-file assurance
 
+For native selected tool-event and workspace evidence, the separate internal
+`assurance.VerifyPreserved` API and `assurance.ParsePreservedReport` select
+report `1.2`; default CLI/report/dashboard flows do not. Native origin,
+artifact completeness, raw argument presence and actual grader agreement are
+required. File subsets cannot prove absence, unknown historical capture remains
+unknown, and calibration is always not selected with null billing. See the
+[preserved-native scope and limits](GRADER-CHALLENGES.md#separately-selected-preserved-native-observations).
+
 `waza assure eval.yaml --references labels.json` observes native file graders
 against complete unredacted preserved files, without a task agent or model.
 Finite authored output can separately challenge native text and inline-schema
@@ -771,7 +782,11 @@ finite-corpus assessment passes; existing `grade` and golden behavior is unchang
 Labels use `schemas/grader-reference-1.0.schema.json`; a separate
 `schemas/grader-review-1.0.schema.json` declaration needs `--review` and explicit
 `--accept-review-source`. Original label bytes, resolved native declarations,
-source bytes and actual executable bytes are distinct binding domains.
+source bytes and observed on-disk executable-path bytes are distinct binding
+domains. The executable digest reads the file opened at `os.Executable()` at
+observation time; it does not certify the mapped image, running RAM,
+authenticity or historical execution. Replacement can change that observation
+or make acquisition fail; missing applicable provenance cannot pass.
 Reports follow `schemas/grader-assurance-1.0.schema.json`. A case selects exactly
 one historical `snapshot` or `authored_input` with rooted path and external
 SHA-256 of the original authored envelope bytes.
@@ -784,9 +799,32 @@ operational failures cannot pass. A subset of captured files cannot establish
 absence. Any wrongly accepted targeted critical negative independently fails,
 regardless of domain agreement. These are finite corpus checks, not confidence.
 
-Model calibration remains unavailable: `--calibrate` makes zero paid calls and
+Legacy `assure --calibrate` remains unavailable: it makes zero paid calls and
 reports not assessed, with null usage/credits. Bundled candidates have not had
 actual human review. See [the contract and support boundary](GRADER-CHALLENGES.md#strict-file-content-assurance).
+
+The [authored-output example](../examples/grader-challenges/authored-output/README.md)
+generates four finite evaluator-only inputs against a selected binary. Its native
+grader outputs agree with the candidate labels, but the expected result remains
+exit 1/not assessed without human review. The dashboard's separate **Assurance**
+view inspects the report locally without uploading it, rechecking its supplied
+claims or associating it with historical runs.
+
+The separate evaluator API `assurance.Calibrate` requires explicit selection,
+a bound local rubric root, a construction-only engine factory and a successful
+paid-call notice before any initialization. It has no default factory.
+The separate `waza assure calibrate` command explicitly installs an owned factory
+and requires `--references`, `--review`, `--accept-review-source` and
+`--rubric-root`. Without `--accept-paid-calls` its notice refuses execution,
+including noninteractive use; there is no prompt or generic `--yes` fallback.
+The reviewed model, admitted job count and count-versus-spend warning are printed
+before construction. A positive `--timeout` defaults to 10m for cooperative
+assessment, not forced cleanup or a spending cap. Existing
+`waza assure --calibrate` still makes zero paid calls. Its
+version-1.1 reports require explicit inspector selection and show supplied judge
+lifecycle/model/accounting claims. See the
+[calibration API boundary](GRADER-CHALLENGES.md#explicit-evaluator-calibration-api)
+for supported modes, fixed-domain criteria, ownership and missing/error states.
 
 ### Existing-workflow compatibility examples
 

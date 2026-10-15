@@ -120,6 +120,11 @@ its turn. These limitations apply even when references resolve.
 
 ## Local resolution
 
+Static grader validation leaves caller-owned tool-argument declarations
+unchanged and disables external JSON Schema loading. Program declarations are
+checked for their required command without loading project timeout defaults or
+launching a process; runtime constructors still resolve their existing defaults.
+
 Task globs and `tasks_from` CSV paths resolve from the eval directory. Nonempty
 `tasks_from` retains runtime precedence over YAML task lists; CSV range, ID
 fallback, variables and template rules are shared with execution. CSV rows do
@@ -138,7 +143,9 @@ Regrading and run analysis use the same CSV loader: results from that range can
 be regraded with `waza grade eval.yaml --results results.json --task row-2`, or
 by omitting `--task` to grade all selected tasks. Explicit CSV IDs/names and
 template variables retain their precedence. Contained links remain allowed;
-resolved escapes are rejected, without a retained-root or race-free guarantee.
+resolved escapes are rejected. The final CSV read uses a retained eval-directory
+root so late symlink replacement cannot escape it; concurrent file contents are
+not frozen.
 An aliased eval base allows relative contained sources and absolute paths within
 the lexical alias root. An alternate physical absolute spelling outside that
 lexical root is rejected even when it resolves inside; physical equivalence alone

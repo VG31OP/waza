@@ -105,6 +105,23 @@ and skill flows remain unchanged. Bundled labels are unreviewed; declarations do
 not authenticate human review. Unknown input completeness and absence from a
 subset cannot become assurance success.
 
+The separately selected internal preserved-native mechanical operation uses
+report `1.2`, checking whole selected tool artifacts and private selected-file
+materialization with original byte/presence/provenance admission. Native grader
+semantics are reused, including distinct canonical versus digest arguments.
+Unknown historical capture, unsupported modes and file-subset absence remain
+nonpass; no paid calibration or automatic CLI/dashboard dispatch is introduced.
+
+Private engine-free qualification primitives provide bounded original-byte
+custody, selected-source inventory binding, immutable handles, a label-free
+execution-view projection and capture-only equivalence controls. The private
+journal extension admits source-bound manifests, derives fixed-role artifacts,
+and tests accepted-host local process-lock/sync barriers with read-only recovery
+and injected invocation-wide freshness seams. It introduces no public wire/API,
+task execution, deployed backend, production currentness authority or lifecycle.
+These checks do not authenticate human review, establish global reservation or
+turn source seals into execution evidence or current publication authorization.
+
 The independent authored-output profile is evaluator-supplied finite text,
 not historical execution, complete tool evidence or observed billing. Native
 historical consumers reject its exact outer `schemaVersion: "2.0"` and
@@ -113,10 +130,32 @@ manifest `1.1` remain independent, not native historical schema upgrades.
 Strict reports bind original label/envelope bytes
 and separate reviewed-source eligibility from actual native agreement.
 
-Paid model calibration and final dashboard/example delivery remain acceptance work.
+Paid model calibration remains acceptance work. The dashboard offers a separate
+read-only local report inspector and historical not-assessed states; imports are
+supplied claims, not verified evidence or native-run associations. The runnable
+authored-output example remains unreviewed with an expected not-assessed result.
 Selecting an unavailable calibration plan records not assessed with zero executions
 and null observed usage/credits; it is not measured calibration or confidence.
 `max_judge_executions` never bounds SDK follow-up billable calls or spend.
+
+The separate evaluator-selected calibration API has no default factory.
+A distinctly selected `assure calibrate` CLI operation requires explicit current
+review-source acceptance, rubric root and default-false `--accept-paid-calls`,
+with no interactive fallback. Existing offline `assure --calibrate` remains
+unavailable with zero paid calls. The new operation requires a pre-initialization
+notice carrying the reviewed plan
+and admitted unique-job count, frozen evaluator-owned declarations/finite inputs/
+local rubric bytes, and source-bound native grading with finalized diagnostics,
+independent model attribution and accounting. Version-1.1 claims require explicit
+consumer selection; strict agreement does not erase operational failure or
+critical false acceptance. Tested client-side callback policy/guards do not
+certify exhaustive server isolation. Missing review, evidence, attribution,
+accounting or unsupported calibration modes remain non-passing.
+Partial reports are output even alongside execution errors; runtime, invalid,
+notice-I/O, output and root-close errors exit 2, ordinary nonpass exits 1.
+Ambient custom-provider redirects are rejected rather than silently changing
+the reviewed provider route. The cooperative assessment timeout is not a spend
+cap or a forced cleanup guarantee.
 
 ### Workflow Author
 - **Role:** Developer evaluating MCP, CLI or repository workflows

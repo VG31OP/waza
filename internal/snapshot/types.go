@@ -213,7 +213,7 @@ func (s Snapshot) MarshalJSON() ([]byte, error) {
 }
 
 func (s *Snapshot) UnmarshalJSON(data []byte) error {
-	if err := models.ValidateNativeJSONKeys(data, Snapshot{}); err != nil {
+	if err := models.ValidateNativeJSONAdmission(data, Snapshot{}); err != nil {
 		return err
 	}
 	type alias Snapshot

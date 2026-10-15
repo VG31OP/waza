@@ -151,6 +151,7 @@ tasks:
 // ---------------------------------------------------------------------------
 
 func TestRunCommand_RequiresExactlyOneArg(t *testing.T) {
+	t.Chdir(isolatedCLITempDir(t))
 	tests := []struct {
 		name string
 		args []string
@@ -165,6 +166,9 @@ func TestRunCommand_RequiresExactlyOneArg(t *testing.T) {
 			cmd.SetArgs(tt.args)
 			err := cmd.Execute()
 			assert.Error(t, err, "expected error for args=%v", tt.args)
+			if len(tt.args) == 0 {
+				assert.ErrorContains(t, err, "no eval.yaml specified and workspace detection failed")
+			}
 		})
 	}
 }

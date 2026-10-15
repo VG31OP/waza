@@ -75,6 +75,115 @@ agreement with a reviewed bad label.
 
 ## In-memory mechanical observations
 
+### Separately selected preserved-native observations
+
+`assurance.VerifyPreserved(ctx, VerifyRequest)` is a separate offline operation
+for selected native tool-event and captured-workspace artifacts.
+`assurance.ParsePreservedReport` admits only its version-`1.2` profile,
+`preserved_native_mechanical_assurance`. Default `Verify`, CLI assurance,
+calibrated version-`1.1` admission and dashboard readers do not select this
+profile automatically.
+
+This operation challenges the **current selected grader** against preserved
+artifacts. Its `native_grader_declaration_json_v1` binding identifies that
+current eval/task declaration, not a claim that a prior execution used the same
+grader, configuration, source revision or version. A snapshot's historical
+native-declaration artifact is not that binding's authority. Historical grader
+correspondence requires a separately verified source/declaration contract and
+is not established here.
+
+The adapter checks original snapshot bytes, manifest identity, exact artifact
+kind/ID/locator, native task/run origin, selected content digests and raw field
+presence before invoking existing graders. Explicit complete, unredacted `[]`
+tool events are operation-specific evidence, not a relaxation of the importer
+that requires nonempty tapes. Missing/null tapes or relevant arguments remain
+insufficient; an explicitly present argument object may be empty. Canonical
+event arguments and normalized session-digest arguments retain their distinct
+native grader semantics.
+
+Supported checks are native tool calls, tool constraints, action sequences and
+required-file existence/content. Selected files are a subset and cannot prove
+absence; unresolved references and other unsupported modes remain not assessed.
+Private materialization includes only verified selected files. Adapter-owned
+limits are 16 MiB raw snapshot bytes, 4 MiB decoded bytes per selected file,
+8 MiB total selected-file bytes and 256 distinct selected paths. These are
+admission bounds, not certification of capture completeness.
+
+Version `1.2` uses `preserved_native_selected_artifacts` for events and
+`preserved_file_subset` for files, never authored-output scope. Calibration is
+always not selected with zero samples/executions, null billing and no judge
+ledger; selecting calibration on this operation cannot execute or pass.
+Strict pass requires eligible supplied review, verified required provenance,
+supported actual grader results, complete scoped coverage and mechanical
+agreement. An incorrectly accepted targeted critical negative fails
+independently; unrelated checks may legitimately pass for that same candidate.
+
+Pre-observation not-assessed, insufficient or invalid observations cannot contain
+a grader result. An operational error after grading may retain the actual known
+result, for example when private-workspace cleanup fails; agreement remains null
+and the observation cannot contribute passing coverage.
+
+Synthetic complete fixtures establish only finite fixture behavior. Current
+historical collector completeness is unknown and cannot be upgraded by this
+operation. Parser admission is not authenticated review or re-execution.
+Deterministic adapter and report controls run without an engine factory:
+
+```bash
+NO_COLOR=1 go test ./internal/assurance -run 'Preserved' -count=1
+```
+
+### Private engine-free qualification primitives
+
+The unexported `qualification_*` helpers prepare bounded, immutable evaluator
+inputs for a future separately reviewed qualification operation. They acquire
+original source/review bytes from caller-owned roots and validate original bytes
+of supplied standalone-report artifacts separately. They bind selected task and
+native grader inventories, require selected local rubric custody, and check
+exact canonical role bytes. Encoded blobs and cumulative projections are bounded
+before payload decoding or oversized serialization. Handles defensively copy
+bytes; the restricted execution view contains only its kind/version, scoped job
+digest, requested model and boundary profile, not human labels or reference cases.
+
+Capture-only equivalence checks reuse existing request identities without
+constructing an engine or executing a task. This bounded input profile requires
+mechanical observations to be empty. These helpers are not a public wire format,
+`Qualify` API, CLI mode, deployed backend, production currentness authority or
+lifecycle implementation. A source seal is not authenticated human
+review, durable receipt, provider enforcement or execution evidence. Existing
+`Verify`, `Calibrate` and report readers remain unchanged.
+
+Run the focused deterministic controls with:
+
+```bash
+go test ./internal/assurance -run '^TestQualification' -count=1
+```
+
+When validating packages that can discover SDK paths, use an absolute rejecting
+`COPILOT_CLI_PATH` guard as in CI, not only `ENABLE_COPILOT_TESTS=false`.
+
+The private journal subset additionally admits manifests against retained
+original sources, acquires fixed-role artifacts through borrowed roots, and
+derives the exact acknowledged core prefix, ordered job tape and artifact
+inventory. Standalone report bytes retain their original formatting; canonical
+event/tape bytes use their separate JSON identity domain. A complete inventory
+requires the acknowledged `before_decision` cutoff and excludes the final
+terminal suffix, avoiding circular hashes.
+
+The local journal uses process locks and exclusive file/directory sync barriers
+on caller-accepted Linux/macOS local storage. Payload persistence precedes event
+and acknowledgment persistence. Failed or uncertain writes poison mutation;
+recovery is read-only. Duplicate claims, closed/poisoned handles, automatic
+resume, repair and supersession are not accepted. This scope is not global
+reservation or proof of physical filesystem durability.
+
+Injected freshness sessions own invocation-wide clock/nonce/job identity and
+require separate current-source, attestor and source-specific verifier inputs.
+Missing/negative proof cannot authorize replay. Test verifiers do not
+authenticate humans or supply a production authority; these helpers construct
+no engines and implement no factory, initialization or task execution lifecycle.
+Complete stored evidence is historical structure, not current publication
+authorization. A future consumer must independently enforce final freshness.
+
 `internal/assurance.ObserveDeclaredMechanical` resolves an actual eval, task or
 checkpoint declaration through the shared pure preflight lookup and invokes its
 existing grader. The identity includes task ID, scope, checkpoint turn where
@@ -91,11 +200,22 @@ verdict without proving that events were captured.
 File grading uses a private evaluator-only workspace containing only configured
 artifacts captured through rooted reads. Diff grading uses copied captured bytes
 and private snapshot copies. The grader does not reopen the original source
-after preparation, and snapshot updates are rejected. Required missing state
+after preparation, and snapshot updates are rejected. Snapshot-backed Diff
+observations require a caller-supplied evaluator-resolved `context_dir`; this
+private observation resolver does not know the ordinary eval context fallback.
+An omitted base is `not_assessed` with an actionable error before consulting
+the process working directory or copying references. Ordinary eval Diff
+defaults, explicitly supplied relative bases and snapshot-free checks are
+unchanged. Required missing state
 produces insufficient evidence before grading; unreadable state and malformed
 argument evidence used by structured matchers are operational errors. Invalid
 regex/schema configuration is rejected by shared pure configuration validation,
 not interpreted as a correct rejection of a bad candidate.
+
+Static validation does not populate compiled matcher caches in caller-owned
+tool-argument declarations. Program configuration checks only its required
+command; project timeout defaults are resolved by the runtime constructor, not
+by static validation. These checks do not establish interpreter availability.
 
 Prompt, program, inline-script and trigger execution, and file-backed JSON
 schemas, are explicitly not assessed by this mechanical helper. It does not
@@ -155,6 +275,132 @@ The baseline tests and raw observer do not change existing defaults, grader
 semantics or exit codes. Reference expectations remain evaluator-only;
 temporary workspaces contain only synthetic resulting state.
 
+### Native judge support boundary
+
+The additive internal judge support preserves exact finite candidate bytes,
+including empty and whitespace-only output, when `graders.Context.OutputPresent`
+selects independent, non-continuation grading. Native rendering and fresh grade
+callbacks remain authoritative; captured callback handlers must not be reused.
+Legacy, continuation and pairwise rendering and tool defaults are unchanged.
+
+That opt-in path installs a client-side two-callback tool filter, a pre-tool
+guard and a default-deny permission handler on the actual SDK request. Only
+`set_waza_grade_pass` and `set_waza_grade_fail` custom callbacks are permitted.
+Missing or unknown permission source/name, builtins, other custom tools and
+workflow/hook impersonation are denied rather than prompted or delegated to
+legacy policy. Offline doubles and pinned SDK loopback tests exercise actual
+new/resumed session configurations, automatic callback turns and unsupported
+policy rejection before sending candidate content.
+
+These checks establish tested **client-side policy and guard enforcement**.
+The SDK exposes no server-side enforcement acknowledgement; successful session
+creation does not certify a server silently ignoring filters or decisions,
+exhaustive builtin isolation, or unsupported live runtime behavior.
+
+An explicitly empty native tool policy also installs the empty SDK tool filter,
+default-deny permission wrapper and pre-tool hook before both new and resumed
+sessions, even without grader callbacks or a caller permission handler. Offline
+configuration and denial controls cover this client-side boundary; a nil policy
+remains unrestricted. This is not certification of a server ignoring those
+controls.
+
+An explicitly owned engine can report sanitized lifecycle diagnostics and
+finalized usage separately from native verdicts. Independent received-event
+model attribution survives usage replacement and shutdown, but does not prove
+exhaustive event delivery or billed usage. It must not be inferred from the
+requested model or substituted for authoritative accounting attribution.
+These support APIs alone do not implement calibration, authorize paid calls,
+authenticate labels or produce an assuring report. `Verify` remains offline,
+and default offline report consumers remain on report version `1.0`.
+
+The explicit calibrated-report admission contract has the same report kind,
+version `1.1` and required operation
+`independent_authored_rubric_calibration`. Its execution ledger separates
+requested models from independent received-event and accounting attribution,
+and records lifecycle/callback/diagnostic evidence without treating absent
+accounting as zero. Strict supplied-claim admission reconciles aggregate
+accounting, scoped observations, provenance, coverage and domain criteria.
+Mechanical domains require every agreement; they cannot dilute paid-domain
+agreement or acquire judge-ledger entries. Critical false acceptance cannot
+average away under ordinary paid disagreement thresholds.
+
+The dashboard inspector can explicitly select this versioned shape, displaying
+supplied ledger claims without re-verification or paid execution. Default
+offline reading still rejects version `1.1`. Schema/claim admission is not
+producer correctness, authenticated review, measured calibration or full
+assurance acceptance; those require their separate implementation and gates.
+
+![Explicit calibrated-claim inspection with unavailable initialization evidence](images/assurance-calibrated-report.png)
+
+### Explicit evaluator calibration API
+
+`assurance.Calibrate(ctx, CalibrateRequest)` is separate from offline `Verify`.
+The request embeds `VerifyRequest` and requires explicit `Calibrate: true`, a
+separate evaluator-owned `RubricRoot *os.Root`, a construction-only
+`EngineFactory(model, diagnosticObserver) (CalibrationEngine, error)`, and
+`PaidCallNotice(plan, admittedUniqueExecutions) error`. There is no default
+engine factory. Missing selection/factory/notice or
+notice refusal produces a non-passing report with no judge executions.
+
+The notice runs only after current supplied-review eligibility, exact source/
+configuration/executable/declaration/rubric bindings, finite input completeness,
+coverage, independent stimuli, effective model and execution ceiling checks.
+It receives both the unchanged reviewed plan and actual admitted job count.
+Declarations, inputs, original rubric bytes and jobs are frozen before either
+callback. Factory callbacks must not initialize or execute; ownership includes
+every nonnil returned engine even when accompanied by an error.
+
+Initial support is independent finite authored-output judging against a bound
+local rubric file in eval/task scope. Native inline prompt overrides remain
+effective when accompanied by that bound rubric. Pairwise, continuing-session,
+checkpoint, historical paid-input, builtin-rubric, inline-only and unexpanded
+reference modes are unsupported. Golden/reference-answer field presence,
+including null or empty forms, is rejected before notice or initialization.
+Duplicate effective stimuli are conservatively
+rejected rather than multiplying samples. Paid domain criteria must use one
+effective rubric/judging configuration; separate mechanical domains remain
+strict and cannot dilute them.
+
+Selected native `RunAll` grading preserves defaults and fresh callback handlers.
+Each admitted job owns a fresh engine lifecycle; shutdown uses an independent,
+30-second cleanup context even after cancellation. That deadline bounds
+cooperative API waits, not an uncooperative engine's shutdown or process join.
+Cancellation halts admission of new executions without suppressing cleanup
+failures or known accounting. Only finalized accounting is
+reported; known zero is distinct from missing usage. Report `1.1` masks partial
+ledger usage as null when completeness is unavailable, rather than certifying
+partial snapshots. Native results and complete known accounting survive
+operational failures, but agreement becomes unavailable and strict pass is
+blocked. A usable ledger entry does not mean the candidate received a pass.
+
+Callers must inspect both returned errors and report state: structurally invalid
+inputs, freezing failures or internal contradictions can return an error, while
+ineligible/unsupported evidence returns a non-passing assessment. The protocol
+describes supplied finite-corpus agreement, not authenticated human review,
+statistical confidence or runtime isolation certification. An execution ceiling
+does not cap automatic provider calls, native callbacks, credits or spending.
+
+### Offline producer compatibility gate
+
+The [injected offline calibration example](../examples/grader-challenges/calibration/README.md)
+shows the callable request/current-source acceptance boundary and runnable native
+callback tests without a production factory or human-certification claim.
+
+The **Offline Grader Assurance** CI workflow exports actual returned reports
+using deterministic injected engines and explicitly synthetic review fixtures.
+An independently verified rejecting `COPILOT_CLI_PATH` prevents native runtime
+launch; `ENABLE_COPILOT_TESTS=false` alone is not that guard.
+
+`scripts/verify-frozen-assurance-reader.cjs` extracts the exact published offline
+inspector and schemas from immutable commit
+`d82cba11265919996660e02d348bb92a3ff1fd4d`, records source/output SHA-256 values,
+and transpiles TypeScript without changing reader logic. Actual calibrated
+producer reports must reject there while an actual offline `Verify` report
+remains accepted. The explicit browser inspector then exercises those same
+returned reports, including operational failure with retained known accounting.
+This is producer-output compatibility proof, not a live model assessment,
+authenticated review or runtime/server certification.
+
 ## Strict file-content assurance
 
 `waza assure eval.yaml --references labels.json` evaluates complete unredacted
@@ -162,6 +408,16 @@ preserved-file inputs with the existing native file grader. It does not execute
 a task agent, start mocks, run a program, check for updates or contact a model.
 The new command exits 1 unless its strict finite-corpus assessment passes;
 existing `grade`, `run`, `gate` and golden-task behavior stays unchanged.
+
+Both `assure` and the separately selected `assure calibrate` materialize locked
+grader presets only from the local cache. They recheck the actual cache digest,
+trust and offline schema/override admission after preflight; missing or changed
+pins/cache cannot be repaired by fetching. Only successfully materialized copies
+lose their `ref` marker before native observation. The exact original eval bytes
+retain that reference binding, while resolved-config and grader-declaration
+digests bind the consumed materialized configuration. Direct API references
+remain unsupported, even if a caller supplies a native type beside the reference.
+This does not authenticate the preset or authorize paid calibration.
 
 The standalone report has kind `waza.grader-assurance` and schema version `1.0`.
 Its wire shape follows
@@ -219,17 +475,27 @@ decisions still require a nonzero time no later than the evaluator's clock.
 | `eval_resolved_config_json_v1` | Selected native resolved eval object using the shared JSON digest |
 | `native_task_declaration_json_v1` | Whole selected native task, including requirement references |
 | `native_grader_declaration_json_v1` | Whole native scoped declaration, not merely its name or type |
-| `implementation_executable_bytes` | Actual running executable bytes, not an author-supplied version string |
+| `implementation_executable_bytes` | Observed on-disk bytes opened at the path returned by `os.Executable()`, not an author-supplied version string |
 | `rubric_content_bytes` | Applicable actual rubric content; native file graders are rubric-free |
 
-Executable identity is conservative and platform/build specific; even a rebuild
-can require a new label binding and review. Missing applicable provenance is not
-assessed. No assurance cache is reused.
+The existing executable digest is a portable observation of that path's file,
+not proof of mapped executable bytes, running RAM, authenticity or historical
+execution. Replacement or mutation may change the observed bytes or make
+acquisition fail; errors leave applicable provenance unavailable, never a zero
+or startup-cache digest. It is platform/build specific; even a rebuild can
+require a new label binding and review. The algorithm, binding domain and report
+format are unchanged. No assurance cache is reused.
 
 Label/review JSON rejects unknown versions/fields, duplicate keys, trailing data,
 invalid identities, repeated cases/references and invalid thresholds. Inputs are
 bounded; snapshot paths are canonical relative paths rooted at the label
 directory. Shared manifest attribution binds full eval/task/run/attempt identity.
+Strict readers reject unpaired Unicode surrogate escapes before decoding.
+Legacy result/snapshot readers without consumed evidence preserve opaque
+tool-argument/detail/unknown-field duplicate and deep JSON values; known typed
+keys still require exact spelling, reject duplicates and retain depth 64.
+Any non-null evidence profile invokes strict original whole-document admission,
+including every profile-bearing occurrence before overwrite selection.
 Every selected full artifact is content-verified before a relative pointer is
 used; required files also retain their exact native array ordinals and raw
 content identity. Only verified required files enter private temporary workspaces.
@@ -251,10 +517,98 @@ made, and records zero executions with **null** usage/credits. A supplied plan's
 protocol/model/execution budget does not itself perform calibration. Program, script,
 trigger and unsupported candidate-input paths remain not assessed.
 
-Isolated paid calibration, historical
-not-assessed dashboard states and full runnable assurance examples are remaining
-acceptance work. Absence of calibration or human review must never be presented
-as assurance.
+Isolated paid calibration remains acceptance work. Absence of calibration or
+human review must never be presented as assurance. The dashboard's separate
+local inspector validates raw JSON and report shape, not the supplied states,
+digests, reviewer identity or evidence freshness. Historical runs remain
+explicitly not assessed; imported reports are neither uploaded nor associated
+with them.
+
+Before schema validation, the inspector rejects fractional wire numbers that
+JavaScript would round to integers, including underflow to zero. Mathematical
+integer decimal/exponent forms and finite fractional numbers retain their
+existing admission. This is an integer-type safeguard, not arbitrary-precision
+decoding or a new safe-integer cap for report `1.0`; report `1.1` retains its
+existing count bounds. Invalid imports clear the previous displayed report.
+
+### Explicit calibration command
+
+`waza assure calibrate` is separate from the unchanged offline command and its
+legacy `--calibrate` flag. This example **can incur paid provider usage** and is
+not an instruction to run bundled, unreviewed candidates:
+
+```bash
+waza assure calibrate eval.yaml --references reviewed-labels.json \
+  --review current-review.json --accept-review-source selected-source \
+  --rubric-root evaluator-rubrics --accept-paid-calls \
+  --timeout 10m --output calibrated-assurance.json
+```
+
+The four input/review/root flags are required. `--accept-paid-calls` defaults to
+false; without it the successful notice refuses execution, returning a nonpass
+1.1 report with an empty ledger and null billing. Interactive and noninteractive
+use follow the same explicit acknowledgment rule. There is no prompt, generic
+`--yes`, model override, automatic source acceptance or production fallback.
+Ambient `COPILOT_BASE_URL`/`COPILOT_PROVIDER_BASE_URL` redirects are rejected for
+this operation, not removed or inherited silently.
+
+The notice prints reviewed model/protocol, actual admitted unique jobs N and
+declared maximum M before engine construction. N<=M limits independent jobs,
+not provider follow-up requests, retries, credits or money. Current eligible
+review and exact source/configuration/executable/rubric/evidence bindings remain
+mandatory even with payment acknowledgment. Acceptance is of a supplied current
+review source, not authentication of a human or discovery of withheld revocations.
+
+Only this selected command supplies the construction-only owned engine factory.
+The producer supplies independent no-skills/ephemeral native requests and the
+two-callback client policy. Borrowed roots remain open until final accounting;
+the command then closes them and retains close failures. `--timeout` must be
+positive (default 10m); it bounds cooperative assessment, not spending or forced
+shutdown. No server isolation or exhaustive event-delivery certification follows.
+
+Both returned report and error are checked. A nonnil partial report is still
+written when execution errors occur; no offline/success-shaped fallback replaces
+it. On Unix, requested file output uses a protected sibling staging file and
+atomic replacement; file and stdout writes are attempted independently. Other
+platforms, including Windows, reject an explicit `--output` with exit 2 before
+preflight, producer, paid notice or engine creation. Omit the flag and capture
+stdout instead; default stdout remains available on every platform. A plain
+nonpass/refusal exits 1, invalid/operational/cancellation/notice-I/O/output/close
+failure exits 2, and only a clean strict pass exits 0. Notices use stderr, JSON
+uses stdout. The local inspector still requires explicit version-1.1 selection.
+
+Private calibration and retained native-source consumers acquire bounded,
+content-bound copies before native construction/decoding. Rubric selection binds
+the original identifier, reference, canonical declaration digest and content
+digest before defaults; selected native rubric metadata says
+`acquired:sha256:<digest>`. Ordinary native path/builtin metadata remains
+`file:`/`builtin:`. The same native parser, formatter and execution loop consume
+the acquired bytes without reopening audit-copy paths. Selected acquired task
+decoding additionally requires an explicit nonblank `id` and refuses
+`prompt_file` rather than reopening a pathname; ordinary task-loading APIs
+retain their existing behavior.
+
+Audit files stay under the worktree cache. The shared store retains `os.Root`
+handles for the worktree, `.cache` and private audit directory. Audit creation
+and cleanup use those retained roots, not reopened absolute paths. Before and
+after audit writes, the store compares the acquired cache and private-child
+identities; parent or child replacement refuses further writes, and cleanup
+cannot delete files in the replacement namespace. POSIX permission checks reject
+a group/world-writable cache parent and any group/other mode bits on the private
+child; changed permissions that violate these checks fail closed. Unknown
+residual files cause an explicit cleanup failure and are retained rather than
+recursively deleted.
+
+These active retained-root namespace and POSIX-mode checks complement
+digest-bound acquired-byte consumption; judge and source decoding still do not
+consume audit paths. They do not certify cache confidentiality, whole-filesystem
+ancestry or Windows ACLs. Windows mode bits are explicitly not ACL certification;
+cross-platform source support is not evidence of actual Windows execution.
+
+The [finite authored-output example](../examples/grader-challenges/authored-output/README.md)
+generates evaluator-only inputs and binds an actual selected executable. Its
+expected exit is 1/not assessed despite four agreeing native grader outputs,
+because no review is supplied or fabricated.
 
 ### Finite authored-output checks
 

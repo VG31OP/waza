@@ -32,6 +32,12 @@ var GraderReviewSchemaJSON string
 //go:embed grader-assurance-1.0.schema.json
 var GraderAssuranceSchemaJSON string
 
+//go:embed grader-assurance-1.1.schema.json
+var CalibratedGraderAssuranceSchemaJSON string
+
+//go:embed grader-assurance-1.2.schema.json
+var PreservedGraderAssuranceSchemaJSON string
+
 //go:embed release-assurance-contract-1.0.schema.json
 var ReleaseAssuranceContractSchemaJSON string
 

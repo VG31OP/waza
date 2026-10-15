@@ -7,6 +7,7 @@ import TrendsPage from "./components/TrendsPage";
 import LiveView from "./components/LiveView";
 import ReleaseView from "./components/ReleaseView";
 
+const AssurancePage = lazy(() => import("./components/AssurancePage"));
 const DashboardLab = lazy(() => import("./lab/DashboardLab"));
 
 type Route =
@@ -16,6 +17,7 @@ type Route =
   | { page: "compare" }
   | { page: "trends" }
   | { page: "live" }
+  | { page: "assurance" }
   | { page: "release" };
 
 function parseHash(): Route {
@@ -29,6 +31,7 @@ function parseHash(): Route {
   if (hash === "/compare") return { page: "compare" };
   if (hash === "/trends") return { page: "trends" };
   if (hash === "/live") return { page: "live" };
+  if (hash === "/assurance") return { page: "assurance" };
   if (hash === "/release") return { page: "release" };
   const runMatch = hash.match(/^\/runs\/(.+)$/);
   if (runMatch?.[1]) return { page: "run", id: runMatch[1] };
@@ -61,6 +64,11 @@ export default function App() {
       {route.page === "compare" && <CompareView />}
       {route.page === "trends" && <TrendsPage />}
       {route.page === "live" && <LiveView />}
+      {route.page === "assurance" && (
+        <Suspense fallback={<p role="status">Loading report inspector...</p>}>
+          <AssurancePage />
+        </Suspense>
+      )}
       {route.page === "release" && <ReleaseView />}
     </Layout>
   );

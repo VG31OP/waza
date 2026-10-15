@@ -7,6 +7,36 @@ description: Complete reference for eval.yaml and task file formats.
 
 Complete reference for YAML schema used in waza evaluations.
 
+## Separate grader-assurance reports
+
+Assurance documents do not change native eval/task/historical result versions.
+Offline reports use `waza.grader-assurance` version `1.0`; calibrated evaluator
+reports use version `1.1` with required
+`assessment_mode: independent_authored_rubric_calibration` and a required
+`calibration.execution_ledger` array. Default offline readers reject `1.1`;
+explicit consumer selection is required.
+
+The calibrated ledger distinguishes actual lifecycle/callback evidence,
+requested model, independent received-event and accounting attribution,
+sanitized diagnostics and finalized usage/credits. Incomplete usage is null,
+not zero; known complete accounting survives operational failure. Exact
+versioned schemas reject unknown members and inconsistent lifecycle shapes.
+Supplied-claim admission additionally checks aggregate accounting, provenance
+and scoped finite-case/domain consistency, but does not authenticate a reviewer
+or re-execute source evidence. See the
+[grader guide](/waza/guides/graders/) and
+[explicit inspector](/waza/guides/dashboard/#grader-assurance).
+
+Preserved-native mechanical reports separately select version `1.2` with
+`assessment_mode: preserved_native_mechanical_assurance`.
+The internal `assurance.VerifyPreserved` operation and
+`assurance.ParsePreservedReport` reader use this profile; default CLI/dashboard
+readers and calibrated `1.1` reading do not admit it automatically.
+Its source scopes are `preserved_native_selected_artifacts` and
+`preserved_file_subset`. Calibration is not selected: usage/credits remain
+null, executions/samples are zero and no execution ledger is present.
+Current native grader bindings do not certify historical grader correspondence.
+
 ## Portable evidence
 
 Tasks retain their legacy format; new results use `1.6` and historical results
