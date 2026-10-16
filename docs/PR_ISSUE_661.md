@@ -1,9 +1,9 @@
 # PR Description: Author 12-scenario Grader Assurance benchmark corpus (#661)
 
-**PR Title**: `feat(assurance): Author 12-scenario Grader Assurance benchmark corpus (#661)`  
-**Branch**: `feat/issue-661-grader-assurance-corpus`  
-**Base Branch**: `main`  
-**Commit**: `4333bef6`  
+**PR Title**: `feat(assurance): Author 12-scenario Grader Assurance benchmark corpus (#661)`
+**Branch**: `feat/issue-661-grader-assurance-corpus`
+**Base Branch**: `main`
+**Commit**: `149125c3`
 
 ---
 
@@ -99,8 +99,9 @@ flowchart TD
   - `TestBenchmarkCorpusObserveMechanical`: Verified 96 mechanical observations through `ObserveMechanical`.
   - `TestBenchmarkCorpusReferenceAdmission`: Verified parse, admission, and cryptographic integrity of `ReferenceDocument`.
   - `TestBenchmarkCorpusDeclaredMechanical`: Verified `ObserveDeclaredMechanical` against declared `TestCase` and `EvalSpec`.
-  - `TestBenchmarkCorpusFixturePersistence`: Verified static fixture round-trip serialization.
-  - `TestBenchmarkCorpusVerifyRequestConstruction`: Verified `ReviewDocument` qualification workflow.
+  - `TestBenchmarkCorpusFixturePersistence`: Verified static fixture round-trip serialization and presence of all 48 reference snapshots.
+  - `TestBenchmarkCorpusObservePreservedMechanical`: Verified mechanical evaluation against serialized snapshot bytes.
+  - `TestBenchmarkCorpusVerifyPreserved`: Verified `VerifyPreserved` preserved assessment against committed reference testdata and snapshots.
 
 ## Documentation
 

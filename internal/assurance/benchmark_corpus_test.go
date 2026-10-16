@@ -291,16 +291,30 @@ func TestBenchmarkCorpusFixturePersistence(t *testing.T) {
 	generatedData, err := json.MarshalIndent(pkg.Document, "", "  ")
 	require.NoError(t, err)
 
-	fixturePath := filepath.Join(".", "testdata", "benchmark_corpus.json")
+	testdataDir := filepath.Join(".", "testdata")
+	fixturePath := filepath.Join(testdataDir, "benchmark_corpus.json")
 	if os.Getenv("REGENERATE_CORPUS") == "1" {
-		require.NoError(t, os.MkdirAll(filepath.Dir(fixturePath), 0o700))
+		require.NoError(t, os.MkdirAll(testdataDir, 0o700))
 		require.NoError(t, os.WriteFile(fixturePath, generatedData, 0o600))
+		for relPath, data := range pkg.Snapshots {
+			snapshotPath := filepath.Join(testdataDir, relPath)
+			require.NoError(t, os.MkdirAll(filepath.Dir(snapshotPath), 0o700))
+			require.NoError(t, os.WriteFile(snapshotPath, data, 0o600))
+		}
 	}
 
 	// Read and compare against the committed reference fixture
 	committedData, err := os.ReadFile(fixturePath)
 	require.NoError(t, err, "committed reference fixture must exist at %s", fixturePath)
 	require.JSONEq(t, string(generatedData), string(committedData), "committed fixture must match generated corpus")
+
+	// Verify all 48 reference snapshots exist on disk and match generated payload
+	for relPath, expectedData := range pkg.Snapshots {
+		snapshotPath := filepath.Join(testdataDir, relPath)
+		committedSnapshot, err := os.ReadFile(snapshotPath)
+		require.NoError(t, err, "committed snapshot must exist at %s", snapshotPath)
+		require.Equal(t, expectedData, committedSnapshot, "committed snapshot %s must match generated payload", relPath)
+	}
 
 	// Verify the committed JSON parses and validates through ParseReferences
 	refSet, err := ParseReferences(committedData)
@@ -325,16 +339,10 @@ func TestBenchmarkCorpusVerifyPreserved(t *testing.T) {
 	inMemoryDoc := pkg.Document
 	inMemoryDoc.ImplementationExecutableSHA256 = new(executable)
 
-	tempDir := t.TempDir()
-	for relPath, data := range pkg.Snapshots {
-		fullPath := filepath.Join(tempDir, relPath)
-		require.NoError(t, os.MkdirAll(filepath.Dir(fullPath), 0o700))
-		require.NoError(t, os.WriteFile(fullPath, data, 0o600))
-	}
-
-	root, err := os.OpenRoot(tempDir)
+	// Replay directly against the committed reference fixture and snapshots root
+	root, err := os.OpenRoot(filepath.Join(".", "testdata"))
 	require.NoError(t, err)
-	defer root.Close()
+	t.Cleanup(func() { require.NoError(t, root.Close()) })
 
 	now := time.Date(2026, 10, 16, 12, 0, 0, 0, time.UTC)
 	req := VerifyRequest{

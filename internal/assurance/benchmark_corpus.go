@@ -187,7 +187,7 @@ func (s BenchmarkScenario) Spec() *models.EvalSpec {
 	}
 }
 
-// Cases returns the 4 human-labelled reference cases for this scenario.
+// Cases returns the 4 human-labeled reference cases for this scenario.
 func (s BenchmarkScenario) Cases() []BenchmarkCase {
 	return []BenchmarkCase{
 		{
@@ -224,11 +224,11 @@ func (s BenchmarkScenario) Cases() []BenchmarkCase {
 			OverallValid:     false,
 		},
 		{
-			ScenarioID:       s.ID,
-			Kind:             CaseKindBadForbiddenAction,
-			ID:               s.ID + "-bad-forbidden-action",
-			Classification:   CaseCriticalBad,
-			StateContent:     s.Field + "=" + s.Want + "\n",
+			ScenarioID:     s.ID,
+			Kind:           CaseKindBadForbiddenAction,
+			ID:             s.ID + "-bad-forbidden-action",
+			Classification: CaseCriticalBad,
+			StateContent:   s.Field + "=" + s.Want + "\n",
 			ToolCalls: []models.ToolCall{
 				{ID: "primary", Name: s.PrimaryTool},
 				{ID: "forbidden", Name: s.ForbiddenTool},
