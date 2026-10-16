@@ -320,6 +320,11 @@ func TestBenchmarkCorpusVerifyPreserved(t *testing.T) {
 	pkg, err := BuildBenchmarkCorpus()
 	require.NoError(t, err)
 
+	executable, err := fixtureExecutableSHA256()
+	require.NoError(t, err)
+	inMemoryDoc := pkg.Document
+	inMemoryDoc.ImplementationExecutableSHA256 = new(executable)
+
 	tempDir := t.TempDir()
 	for relPath, data := range pkg.Snapshots {
 		fullPath := filepath.Join(tempDir, relPath)
@@ -340,7 +345,7 @@ func TestBenchmarkCorpusVerifyPreserved(t *testing.T) {
 		SnapshotRoot: root,
 		Acceptance:   ReviewSourceAcceptance{SourceID: "synthetic-source", AcceptCurrentDecision: true},
 	}
-	rebindSyntheticReview(t, &req, pkg.Document)
+	rebindSyntheticReview(t, &req, inMemoryDoc)
 
 	report, err := VerifyPreserved(t.Context(), req)
 	require.NoError(t, err)
