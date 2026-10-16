@@ -15,20 +15,7 @@ import (
 	"github.com/microsoft/waza/internal/snapshot"
 )
 
-// BenchmarkScenario defines one challenge scenario spanning MCP, CLI, or Repository domains.
-type BenchmarkScenario struct {
-	ID            string `json:"id"`
-	Domain        string `json:"domain"`
-	Path          string `json:"path"`
-	Field         string `json:"field"`
-	Want          string `json:"want"`
-	Wrong         string `json:"wrong"`
-	PrimaryTool   string `json:"primary_tool"`
-	AlternateTool string `json:"alternate_tool"`
-	ForbiddenTool string `json:"forbidden_tool"`
-}
-
-// BenchmarkCaseKind distinguishes the 4 human-labelled reference cases for each scenario.
+// BenchmarkCaseKind classifies the synthetic candidate behavior.
 type BenchmarkCaseKind string
 
 const (
@@ -38,20 +25,20 @@ const (
 	CaseKindBadForbiddenAction BenchmarkCaseKind = "bad-forbidden-action"
 )
 
-// BenchmarkCase represents one concrete reference candidate case with expected verdicts.
-type BenchmarkCase struct {
-	ScenarioID       string             `json:"scenario_id"`
-	Kind             BenchmarkCaseKind  `json:"kind"`
-	ID               string             `json:"id"`
-	Classification   CaseClassification `json:"classification"`
-	StateContent     string             `json:"state_content"`
-	ToolCalls        []models.ToolCall  `json:"tool_calls"`
-	OutcomeExpected  bool               `json:"outcome_expected"`
-	BoundaryExpected bool               `json:"boundary_expected"`
-	OverallValid     bool               `json:"overall_valid"`
+// BenchmarkScenario defines the state expectations and tool boundaries for a benchmark challenge.
+type BenchmarkScenario struct {
+	ID            string
+	Domain        string
+	Path          string
+	Field         string
+	Want          string
+	Wrong         string
+	PrimaryTool   string
+	AlternateTool string
+	ForbiddenTool string
 }
 
-// DefaultBenchmarkScenarios returns the 12 canonical benchmark scenarios covering 4 MCP, 4 CLI, and 4 Repository domains.
+// DefaultBenchmarkScenarios returns the canonical 12 scenarios across MCP, CLI, and Repository domains.
 func DefaultBenchmarkScenarios() []BenchmarkScenario {
 	return []BenchmarkScenario{
 		// MCP domain (4 scenarios)
@@ -132,6 +119,16 @@ func (s BenchmarkScenario) ContradictionRegex() string {
 	return fmt.Sprintf(`(?m)^%s[ \t]*=[ \t]*%s[ \t]*$`, regexp.QuoteMeta(s.Field), regexp.QuoteMeta(s.Wrong))
 }
 
+// OutcomeGraderID returns the globally unique identifier for this scenario's outcome grader.
+func (s BenchmarkScenario) OutcomeGraderID() string {
+	return s.ID + "-outcome"
+}
+
+// BoundaryGraderID returns the globally unique identifier for this scenario's boundary grader.
+func (s BenchmarkScenario) BoundaryGraderID() string {
+	return s.ID + "-boundary"
+}
+
 // OutcomeParameters returns the FileGraderParameters validating the required state.
 func (s BenchmarkScenario) OutcomeParameters() models.FileGraderParameters {
 	return models.FileGraderParameters{
@@ -160,13 +157,13 @@ func (s BenchmarkScenario) Task() *models.TestCase {
 				ID:          "outcome",
 				Category:    "outcome",
 				Description: fmt.Sprintf("Verify valid final state for %s", s.ID),
-				Checks:      []models.RequirementCheck{{Scope: "eval", Grader: "outcome"}},
+				Checks:      []models.RequirementCheck{{Scope: "eval", Grader: s.OutcomeGraderID()}},
 			},
 			{
 				ID:          "boundary",
 				Category:    "boundary",
 				Description: fmt.Sprintf("Verify tool boundaries respected for %s", s.ID),
-				Checks:      []models.RequirementCheck{{Scope: "eval", Grader: "boundary"}},
+				Checks:      []models.RequirementCheck{{Scope: "eval", Grader: s.BoundaryGraderID()}},
 			},
 		},
 	}
@@ -177,12 +174,12 @@ func (s BenchmarkScenario) Spec() *models.EvalSpec {
 	return &models.EvalSpec{
 		Graders: []models.GraderConfig{
 			{
-				Identifier: "outcome",
+				Identifier: s.OutcomeGraderID(),
 				Kind:       models.GraderKindFile,
 				Parameters: s.OutcomeParameters(),
 			},
 			{
-				Identifier: "boundary",
+				Identifier: s.BoundaryGraderID(),
 				Kind:       models.GraderKindToolCalls,
 				Parameters: s.BoundaryParameters(),
 			},
@@ -243,6 +240,19 @@ func (s BenchmarkScenario) Cases() []BenchmarkCase {
 	}
 }
 
+// BenchmarkCase represents a single candidate evaluation instance.
+type BenchmarkCase struct {
+	ScenarioID       string
+	Kind             BenchmarkCaseKind
+	ID               string
+	Classification   CaseClassification
+	StateContent     string
+	ToolCalls        []models.ToolCall
+	OutcomeExpected  bool
+	BoundaryExpected bool
+	OverallValid     bool
+}
+
 // Context builds an execution Context with workspace files, session digest, and canonical tool events.
 func (c BenchmarkCase) Context(workspaceDir string) *graders.Context {
 	gCtx := &graders.Context{
@@ -270,10 +280,12 @@ func (c BenchmarkCase) PrepareWorkspace(rootDir string, scenario BenchmarkScenar
 	return os.WriteFile(filePath, []byte(c.StateContent), 0o600)
 }
 
-// BenchmarkCorpusPackage contains the structured ReferenceDocument and accompanying snapshot payloads.
+// BenchmarkCorpusPackage contains the structured ReferenceDocument, combined specs/tasks, and accompanying snapshot payloads.
 type BenchmarkCorpusPackage struct {
-	Document  ReferenceDocument
-	Snapshots map[string][]byte
+	Document     ReferenceDocument
+	CombinedSpec *models.EvalSpec
+	Tasks        map[string]*models.TestCase
+	Snapshots    map[string][]byte
 }
 
 // BuildBenchmarkCorpus constructs the complete 12-scenario, 48-case reference benchmark corpus.
@@ -283,8 +295,10 @@ func BuildBenchmarkCorpus() (*BenchmarkCorpusPackage, error) {
 	snapshots := make(map[string][]byte, len(scenarios)*4)
 
 	combinedSpec := &models.EvalSpec{}
+	tasksMap := make(map[string]*models.TestCase, len(scenarios))
 	for _, s := range scenarios {
 		combinedSpec.Graders = append(combinedSpec.Graders, s.Spec().Graders...)
+		tasksMap[s.Task().TestID] = s.Task()
 	}
 	configDigest, err := evidence.JSONDigest(combinedSpec)
 	if err != nil {
@@ -322,7 +336,7 @@ func BuildBenchmarkCorpus() (*BenchmarkCorpusPackage, error) {
 			fileSHA := hex.EncodeToString(contentSum[:])
 
 			origin := models.EvidenceOrigin{
-				EvalID:        "reference:waza-grader-assurance-benchmark",
+				EvalID:        "waza-grader-assurance-benchmark",
 				TaskID:        task.TestID,
 				RunNumber:     caseOrdinal,
 				AttemptCount:  1,
@@ -330,9 +344,10 @@ func BuildBenchmarkCorpus() (*BenchmarkCorpusPackage, error) {
 			}
 
 			rawFile := map[string]any{
-				"path":    scenario.Path,
-				"content": candidate.StateContent,
-				"sha256":  fileSHA,
+				"path":     scenario.Path,
+				"content":  candidate.StateContent,
+				"sha256":   fileSHA,
+				"redacted": false,
 			}
 			rawFiles := []any{rawFile}
 
@@ -465,7 +480,9 @@ func BuildBenchmarkCorpus() (*BenchmarkCorpusPackage, error) {
 	}
 
 	return &BenchmarkCorpusPackage{
-		Document:  doc,
-		Snapshots: snapshots,
+		Document:     doc,
+		CombinedSpec: combinedSpec,
+		Tasks:        tasksMap,
+		Snapshots:    snapshots,
 	}, nil
 }

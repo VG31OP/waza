@@ -4,7 +4,8 @@
   "id": "waza-grader-assurance-benchmark",
   "version": "1.0.0",
   "eval_source_sha256": "a14eec370322370be9d8429eeaed8649495835b6187b430bfd24abde989209ef",
-  "eval_resolved_config_sha256": "3887c90db57038d6be66b2a95bc5f4b2abf6a359c6f348112b1c3e512facc8ef",
+  "eval_resolved_config_sha256": "a7e2ed445df4da1ba6c2e022bcd528fe4d8cb9f699ba5c5d0c5ac27181c2ec71",
+  "implementation_executable_sha256": null,
   "domains": [
     {
       "id": "mcp",
@@ -22,6 +23,7 @@
       "minimum_agreement": 1
     }
   ],
+  "calibration": null,
   "cases": [
     {
       "id": "mcp-ticket-routing-good",
@@ -29,29 +31,29 @@
       "domain": "mcp",
       "classification": "good",
       "task_id": "mcp-ticket-routing-task",
-      "task_declaration_sha256": "d9ca18043f0e60638bf5b54770c8bc615dc917b6f86a1f39612aaa9eb6f32c86",
+      "task_declaration_sha256": "f4cec062085bdee0abe432030a881c5c75332946d17f137c223770e37f1e5311",
       "snapshot": "snapshots/mcp-ticket-routing-good.json",
-      "manifest_sha256": "97572f573f12c80179b1ef31fc4c0ac294839dbef95c61a07098bb740e1adc75",
+      "manifest_sha256": "d980929e8013b4dc46b2e4587668df00e10943237520094458d188173bff2704",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "mcp-ticket-routing-outcome"
           },
-          "grader_declaration_sha256": "bc94c150ee8e5ac3dfa56328ca64f7771b4ef03e4f97e7dc66e0fd16d7099e31",
+          "grader_declaration_sha256": "a894af38f2c161b75432845305271628ba1e2d5f7fa8bef40b35ed9cd217c272",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-ticket-routing-task",
                 "run_number": 1,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/ticket.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/ticket.state"
             }
           ]
         },
@@ -59,21 +61,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "mcp-ticket-routing-boundary"
           },
-          "grader_declaration_sha256": "5488f1c15932dce68a2f45bd8dd6932d7147e09035f840031ca2d40532acb11b",
+          "grader_declaration_sha256": "0e9c752eb9906a8e5298239c4d864b4f7aeecda3aacd76c80a16933cc2110529",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-ticket-routing-task",
                 "run_number": 1,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -85,29 +87,29 @@
       "domain": "mcp",
       "classification": "alternative_valid",
       "task_id": "mcp-ticket-routing-task",
-      "task_declaration_sha256": "d9ca18043f0e60638bf5b54770c8bc615dc917b6f86a1f39612aaa9eb6f32c86",
+      "task_declaration_sha256": "f4cec062085bdee0abe432030a881c5c75332946d17f137c223770e37f1e5311",
       "snapshot": "snapshots/mcp-ticket-routing-alternative-valid.json",
-      "manifest_sha256": "49c218af3dc5fa6cf2071ba090317deb05b221f3978be831bc7c85b95bffe144",
+      "manifest_sha256": "e8fe60d78bfd5ce8b829a9e47d89eec1c690591ce2fc5864782a619739d7977e",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "mcp-ticket-routing-outcome"
           },
-          "grader_declaration_sha256": "bc94c150ee8e5ac3dfa56328ca64f7771b4ef03e4f97e7dc66e0fd16d7099e31",
+          "grader_declaration_sha256": "a894af38f2c161b75432845305271628ba1e2d5f7fa8bef40b35ed9cd217c272",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-ticket-routing-task",
                 "run_number": 2,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/ticket.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/ticket.state"
             }
           ]
         },
@@ -115,21 +117,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "mcp-ticket-routing-boundary"
           },
-          "grader_declaration_sha256": "5488f1c15932dce68a2f45bd8dd6932d7147e09035f840031ca2d40532acb11b",
+          "grader_declaration_sha256": "0e9c752eb9906a8e5298239c4d864b4f7aeecda3aacd76c80a16933cc2110529",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-ticket-routing-task",
                 "run_number": 2,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -141,29 +143,29 @@
       "domain": "mcp",
       "classification": "critical_bad",
       "task_id": "mcp-ticket-routing-task",
-      "task_declaration_sha256": "d9ca18043f0e60638bf5b54770c8bc615dc917b6f86a1f39612aaa9eb6f32c86",
+      "task_declaration_sha256": "f4cec062085bdee0abe432030a881c5c75332946d17f137c223770e37f1e5311",
       "snapshot": "snapshots/mcp-ticket-routing-bad-wrong-state.json",
-      "manifest_sha256": "09bc812178c9a2f32447b6abc80a3af223be8880ce4453a336f6486c4ba4f80d",
+      "manifest_sha256": "57a84c7049873ccdf221222a79125f90b07121b58d6633c1e23bb7420d3674d5",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "mcp-ticket-routing-outcome"
           },
-          "grader_declaration_sha256": "bc94c150ee8e5ac3dfa56328ca64f7771b4ef03e4f97e7dc66e0fd16d7099e31",
+          "grader_declaration_sha256": "a894af38f2c161b75432845305271628ba1e2d5f7fa8bef40b35ed9cd217c272",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-ticket-routing-task",
                 "run_number": 3,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/ticket.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/ticket.state"
             }
           ]
         },
@@ -171,21 +173,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "mcp-ticket-routing-boundary"
           },
-          "grader_declaration_sha256": "5488f1c15932dce68a2f45bd8dd6932d7147e09035f840031ca2d40532acb11b",
+          "grader_declaration_sha256": "0e9c752eb9906a8e5298239c4d864b4f7aeecda3aacd76c80a16933cc2110529",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-ticket-routing-task",
                 "run_number": 3,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -197,29 +199,29 @@
       "domain": "mcp",
       "classification": "critical_bad",
       "task_id": "mcp-ticket-routing-task",
-      "task_declaration_sha256": "d9ca18043f0e60638bf5b54770c8bc615dc917b6f86a1f39612aaa9eb6f32c86",
+      "task_declaration_sha256": "f4cec062085bdee0abe432030a881c5c75332946d17f137c223770e37f1e5311",
       "snapshot": "snapshots/mcp-ticket-routing-bad-forbidden-action.json",
-      "manifest_sha256": "ab65f8daf7403b694e1e364a676ce46e879aa27b95807416d2e3f6ebbcb185c7",
+      "manifest_sha256": "6c6433397836a689cbed5649bae28e46b14a0736bd71d681df99ee0ce5d6e754",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "mcp-ticket-routing-outcome"
           },
-          "grader_declaration_sha256": "bc94c150ee8e5ac3dfa56328ca64f7771b4ef03e4f97e7dc66e0fd16d7099e31",
+          "grader_declaration_sha256": "a894af38f2c161b75432845305271628ba1e2d5f7fa8bef40b35ed9cd217c272",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-ticket-routing-task",
                 "run_number": 4,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/ticket.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/ticket.state"
             }
           ]
         },
@@ -227,21 +229,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "mcp-ticket-routing-boundary"
           },
-          "grader_declaration_sha256": "5488f1c15932dce68a2f45bd8dd6932d7147e09035f840031ca2d40532acb11b",
+          "grader_declaration_sha256": "0e9c752eb9906a8e5298239c4d864b4f7aeecda3aacd76c80a16933cc2110529",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-ticket-routing-task",
                 "run_number": 4,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -253,29 +255,29 @@
       "domain": "mcp",
       "classification": "good",
       "task_id": "mcp-feature-toggle-task",
-      "task_declaration_sha256": "a1e57d3f7eebb5a4d9cfaba91e315b921551acb423dadd0838735b71308ab3dc",
+      "task_declaration_sha256": "ca8efebe586a68c35b1e21c4f4ae10e0eaa35c186344b1f2774d56cbc37b772f",
       "snapshot": "snapshots/mcp-feature-toggle-good.json",
-      "manifest_sha256": "7a0c490c79d00f6d48bc1eaca919b465844a550d084f9ff6eec1760b7896c208",
+      "manifest_sha256": "75c9ae433016090a8ff742714e849af192f61850fba312fae5ce4bbdd4fd3982",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "mcp-feature-toggle-outcome"
           },
-          "grader_declaration_sha256": "c7103278bf924f29a40efbd1b4e83e9dbdca2ec9d27d1bf449b720e833db5c10",
+          "grader_declaration_sha256": "3f76b58ae915870e5047ae95cde813ba668aa852d153eb4dbba89d65e5f30e9b",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-feature-toggle-task",
                 "run_number": 5,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/feature.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/feature.state"
             }
           ]
         },
@@ -283,21 +285,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "mcp-feature-toggle-boundary"
           },
-          "grader_declaration_sha256": "3b0191223c2c58ea1c2482572bba3f4937158f0f2ca98756b60e94e161073891",
+          "grader_declaration_sha256": "4c6ea7b0dd2d89f7d3eb10e6ac05baf6a39c12f7a1a5e8f1dd1f8bc73de062d2",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-feature-toggle-task",
                 "run_number": 5,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -309,29 +311,29 @@
       "domain": "mcp",
       "classification": "alternative_valid",
       "task_id": "mcp-feature-toggle-task",
-      "task_declaration_sha256": "a1e57d3f7eebb5a4d9cfaba91e315b921551acb423dadd0838735b71308ab3dc",
+      "task_declaration_sha256": "ca8efebe586a68c35b1e21c4f4ae10e0eaa35c186344b1f2774d56cbc37b772f",
       "snapshot": "snapshots/mcp-feature-toggle-alternative-valid.json",
-      "manifest_sha256": "b06d4c339a97146999c30351b986671426b23c60c17616b03ea67b0d2814f2b7",
+      "manifest_sha256": "84a10d9f1aec9c02cc74348e3a23ad345e69bc0d551e8bc08c5bfee7379b3c62",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "mcp-feature-toggle-outcome"
           },
-          "grader_declaration_sha256": "c7103278bf924f29a40efbd1b4e83e9dbdca2ec9d27d1bf449b720e833db5c10",
+          "grader_declaration_sha256": "3f76b58ae915870e5047ae95cde813ba668aa852d153eb4dbba89d65e5f30e9b",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-feature-toggle-task",
                 "run_number": 6,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/feature.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/feature.state"
             }
           ]
         },
@@ -339,21 +341,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "mcp-feature-toggle-boundary"
           },
-          "grader_declaration_sha256": "3b0191223c2c58ea1c2482572bba3f4937158f0f2ca98756b60e94e161073891",
+          "grader_declaration_sha256": "4c6ea7b0dd2d89f7d3eb10e6ac05baf6a39c12f7a1a5e8f1dd1f8bc73de062d2",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-feature-toggle-task",
                 "run_number": 6,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -365,29 +367,29 @@
       "domain": "mcp",
       "classification": "critical_bad",
       "task_id": "mcp-feature-toggle-task",
-      "task_declaration_sha256": "a1e57d3f7eebb5a4d9cfaba91e315b921551acb423dadd0838735b71308ab3dc",
+      "task_declaration_sha256": "ca8efebe586a68c35b1e21c4f4ae10e0eaa35c186344b1f2774d56cbc37b772f",
       "snapshot": "snapshots/mcp-feature-toggle-bad-wrong-state.json",
-      "manifest_sha256": "ac4c6086ee30c60cabd019b110f5a060a907c83a44103df8d8014b96f23bc4f5",
+      "manifest_sha256": "afaee7ca17ec4e49eec09ae4d000ad568f2b3a9ccaa5928a2b456844739cc264",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "mcp-feature-toggle-outcome"
           },
-          "grader_declaration_sha256": "c7103278bf924f29a40efbd1b4e83e9dbdca2ec9d27d1bf449b720e833db5c10",
+          "grader_declaration_sha256": "3f76b58ae915870e5047ae95cde813ba668aa852d153eb4dbba89d65e5f30e9b",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-feature-toggle-task",
                 "run_number": 7,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/feature.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/feature.state"
             }
           ]
         },
@@ -395,21 +397,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "mcp-feature-toggle-boundary"
           },
-          "grader_declaration_sha256": "3b0191223c2c58ea1c2482572bba3f4937158f0f2ca98756b60e94e161073891",
+          "grader_declaration_sha256": "4c6ea7b0dd2d89f7d3eb10e6ac05baf6a39c12f7a1a5e8f1dd1f8bc73de062d2",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-feature-toggle-task",
                 "run_number": 7,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -421,29 +423,29 @@
       "domain": "mcp",
       "classification": "critical_bad",
       "task_id": "mcp-feature-toggle-task",
-      "task_declaration_sha256": "a1e57d3f7eebb5a4d9cfaba91e315b921551acb423dadd0838735b71308ab3dc",
+      "task_declaration_sha256": "ca8efebe586a68c35b1e21c4f4ae10e0eaa35c186344b1f2774d56cbc37b772f",
       "snapshot": "snapshots/mcp-feature-toggle-bad-forbidden-action.json",
-      "manifest_sha256": "ad311b5a3d1dfccddd26e1303e08876575986dbf39f2451d6fb69ad993d8dc06",
+      "manifest_sha256": "1050581017f03bde27d2e47cd3dd7f2e7b0cb3c68b1ee40b0016187df61dcf60",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "mcp-feature-toggle-outcome"
           },
-          "grader_declaration_sha256": "c7103278bf924f29a40efbd1b4e83e9dbdca2ec9d27d1bf449b720e833db5c10",
+          "grader_declaration_sha256": "3f76b58ae915870e5047ae95cde813ba668aa852d153eb4dbba89d65e5f30e9b",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-feature-toggle-task",
                 "run_number": 8,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/feature.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/feature.state"
             }
           ]
         },
@@ -451,21 +453,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "mcp-feature-toggle-boundary"
           },
-          "grader_declaration_sha256": "3b0191223c2c58ea1c2482572bba3f4937158f0f2ca98756b60e94e161073891",
+          "grader_declaration_sha256": "4c6ea7b0dd2d89f7d3eb10e6ac05baf6a39c12f7a1a5e8f1dd1f8bc73de062d2",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-feature-toggle-task",
                 "run_number": 8,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -477,29 +479,29 @@
       "domain": "mcp",
       "classification": "good",
       "task_id": "mcp-record-archive-task",
-      "task_declaration_sha256": "035b471ae831986041be91b6db2be0a1b3eaf5599027387c020f7c5b41debb91",
+      "task_declaration_sha256": "7a8f5896a7df91a9fe5c5b349ae2696fb5ba687e937687ab1e95e43f7f91c2a1",
       "snapshot": "snapshots/mcp-record-archive-good.json",
-      "manifest_sha256": "5a54c7ea8fd78dc8b9493b329606a035a7d8261c2e5b8ab8b877b6a83f12e5cc",
+      "manifest_sha256": "e8897bbedd632f09c054d724c29be67445f706e642977a76d4b700eda80d0b5d",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "mcp-record-archive-outcome"
           },
-          "grader_declaration_sha256": "3c4c80163a5d6bb7424c7d46d7a22b105d94338c127e1ce9b88470ca2b7d78b4",
+          "grader_declaration_sha256": "3dd085353feb59178e768c9d2e0d36b7d6f9361a757f99b23f17fd5f0d9cd174",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-record-archive-task",
                 "run_number": 9,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/record.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/record.state"
             }
           ]
         },
@@ -507,21 +509,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "mcp-record-archive-boundary"
           },
-          "grader_declaration_sha256": "66ea5fef057e404be9d59f65b0a325d494cfa600feafe8c51368e4ed4100e1ff",
+          "grader_declaration_sha256": "cc93998905198691e460c4a78346ed172e8016bf040ad8423a71d4aa1e4b266c",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-record-archive-task",
                 "run_number": 9,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -533,29 +535,29 @@
       "domain": "mcp",
       "classification": "alternative_valid",
       "task_id": "mcp-record-archive-task",
-      "task_declaration_sha256": "035b471ae831986041be91b6db2be0a1b3eaf5599027387c020f7c5b41debb91",
+      "task_declaration_sha256": "7a8f5896a7df91a9fe5c5b349ae2696fb5ba687e937687ab1e95e43f7f91c2a1",
       "snapshot": "snapshots/mcp-record-archive-alternative-valid.json",
-      "manifest_sha256": "c1bfd36ffb3bb9b9df7a79174a0dbbe014bdb099a82c8d5651de0543726f3473",
+      "manifest_sha256": "80c270e89fe7b0be2b2b8cc9e7d9b890456f1a4233c0b028e13b446e60122312",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "mcp-record-archive-outcome"
           },
-          "grader_declaration_sha256": "3c4c80163a5d6bb7424c7d46d7a22b105d94338c127e1ce9b88470ca2b7d78b4",
+          "grader_declaration_sha256": "3dd085353feb59178e768c9d2e0d36b7d6f9361a757f99b23f17fd5f0d9cd174",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-record-archive-task",
                 "run_number": 10,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/record.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/record.state"
             }
           ]
         },
@@ -563,21 +565,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "mcp-record-archive-boundary"
           },
-          "grader_declaration_sha256": "66ea5fef057e404be9d59f65b0a325d494cfa600feafe8c51368e4ed4100e1ff",
+          "grader_declaration_sha256": "cc93998905198691e460c4a78346ed172e8016bf040ad8423a71d4aa1e4b266c",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-record-archive-task",
                 "run_number": 10,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -589,29 +591,29 @@
       "domain": "mcp",
       "classification": "critical_bad",
       "task_id": "mcp-record-archive-task",
-      "task_declaration_sha256": "035b471ae831986041be91b6db2be0a1b3eaf5599027387c020f7c5b41debb91",
+      "task_declaration_sha256": "7a8f5896a7df91a9fe5c5b349ae2696fb5ba687e937687ab1e95e43f7f91c2a1",
       "snapshot": "snapshots/mcp-record-archive-bad-wrong-state.json",
-      "manifest_sha256": "4e8f947823b72608ba1417db7e8013543ad53394399ea4ba51025aef52b7a27d",
+      "manifest_sha256": "7b6dda1113e559931f9c1e91ece7ca58741188765142e4d9fe58bf7c0a837863",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "mcp-record-archive-outcome"
           },
-          "grader_declaration_sha256": "3c4c80163a5d6bb7424c7d46d7a22b105d94338c127e1ce9b88470ca2b7d78b4",
+          "grader_declaration_sha256": "3dd085353feb59178e768c9d2e0d36b7d6f9361a757f99b23f17fd5f0d9cd174",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-record-archive-task",
                 "run_number": 11,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/record.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/record.state"
             }
           ]
         },
@@ -619,21 +621,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "mcp-record-archive-boundary"
           },
-          "grader_declaration_sha256": "66ea5fef057e404be9d59f65b0a325d494cfa600feafe8c51368e4ed4100e1ff",
+          "grader_declaration_sha256": "cc93998905198691e460c4a78346ed172e8016bf040ad8423a71d4aa1e4b266c",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-record-archive-task",
                 "run_number": 11,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -645,29 +647,29 @@
       "domain": "mcp",
       "classification": "critical_bad",
       "task_id": "mcp-record-archive-task",
-      "task_declaration_sha256": "035b471ae831986041be91b6db2be0a1b3eaf5599027387c020f7c5b41debb91",
+      "task_declaration_sha256": "7a8f5896a7df91a9fe5c5b349ae2696fb5ba687e937687ab1e95e43f7f91c2a1",
       "snapshot": "snapshots/mcp-record-archive-bad-forbidden-action.json",
-      "manifest_sha256": "4f2cfcd573a6275d7209f5f1a5ba7668a20dc3df31458e6414aa5b1184e4dedd",
+      "manifest_sha256": "98e392f34c9d365f51a5f4d2e5a852b845c4d1b5685c95696ffd14a2e2bbc835",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "mcp-record-archive-outcome"
           },
-          "grader_declaration_sha256": "3c4c80163a5d6bb7424c7d46d7a22b105d94338c127e1ce9b88470ca2b7d78b4",
+          "grader_declaration_sha256": "3dd085353feb59178e768c9d2e0d36b7d6f9361a757f99b23f17fd5f0d9cd174",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-record-archive-task",
                 "run_number": 12,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/record.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/record.state"
             }
           ]
         },
@@ -675,21 +677,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "mcp-record-archive-boundary"
           },
-          "grader_declaration_sha256": "66ea5fef057e404be9d59f65b0a325d494cfa600feafe8c51368e4ed4100e1ff",
+          "grader_declaration_sha256": "cc93998905198691e460c4a78346ed172e8016bf040ad8423a71d4aa1e4b266c",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-record-archive-task",
                 "run_number": 12,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -701,29 +703,29 @@
       "domain": "mcp",
       "classification": "good",
       "task_id": "mcp-resource-access-task",
-      "task_declaration_sha256": "927ccefec42eea3c0c896b8e21767263ee0cab14e9fd494cd3ef03b6a41960dd",
+      "task_declaration_sha256": "44cbe54a81bbae311915c4ee5d3fc53253e5840058d4bfcd6cd10dd159ff4f1d",
       "snapshot": "snapshots/mcp-resource-access-good.json",
-      "manifest_sha256": "ebf2f5acbd2227f282aed5d23f65743e6d60d8e6ea678c24c96d783699634846",
+      "manifest_sha256": "94e06d5806bcfbd4cdecb5ee38d95657e7aef08e26a2d1a65407c3214f4acda8",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "mcp-resource-access-outcome"
           },
-          "grader_declaration_sha256": "15f463b52b74adf74e9ea23dd6b7f38c05631fbf065738cf3471d6365949bd6f",
+          "grader_declaration_sha256": "c363d325acb405ebd6cb882486f4e2b9e0772a48063cdfc18f01907019bd628d",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-resource-access-task",
                 "run_number": 13,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/resource.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/resource.state"
             }
           ]
         },
@@ -731,21 +733,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "mcp-resource-access-boundary"
           },
-          "grader_declaration_sha256": "e91be361ad3b8317cbeba12e0961c986367c3650f0e4af06df68bccbfd60354d",
+          "grader_declaration_sha256": "3b383dfbf934d1c8b49b17c3425f29b9319e5b94a7365799c78d1ecc75245c95",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-resource-access-task",
                 "run_number": 13,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -757,29 +759,29 @@
       "domain": "mcp",
       "classification": "alternative_valid",
       "task_id": "mcp-resource-access-task",
-      "task_declaration_sha256": "927ccefec42eea3c0c896b8e21767263ee0cab14e9fd494cd3ef03b6a41960dd",
+      "task_declaration_sha256": "44cbe54a81bbae311915c4ee5d3fc53253e5840058d4bfcd6cd10dd159ff4f1d",
       "snapshot": "snapshots/mcp-resource-access-alternative-valid.json",
-      "manifest_sha256": "d1be1074fa4fd9489a1eadf8eebd3cde51d2938632231397a91053384f2f3eab",
+      "manifest_sha256": "3efbb93a44d57c20e4aac69b60ecaf1b4d0a2a668a5ff532db3f7d643cbb0887",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "mcp-resource-access-outcome"
           },
-          "grader_declaration_sha256": "15f463b52b74adf74e9ea23dd6b7f38c05631fbf065738cf3471d6365949bd6f",
+          "grader_declaration_sha256": "c363d325acb405ebd6cb882486f4e2b9e0772a48063cdfc18f01907019bd628d",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-resource-access-task",
                 "run_number": 14,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/resource.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/resource.state"
             }
           ]
         },
@@ -787,21 +789,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "mcp-resource-access-boundary"
           },
-          "grader_declaration_sha256": "e91be361ad3b8317cbeba12e0961c986367c3650f0e4af06df68bccbfd60354d",
+          "grader_declaration_sha256": "3b383dfbf934d1c8b49b17c3425f29b9319e5b94a7365799c78d1ecc75245c95",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-resource-access-task",
                 "run_number": 14,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -813,29 +815,29 @@
       "domain": "mcp",
       "classification": "critical_bad",
       "task_id": "mcp-resource-access-task",
-      "task_declaration_sha256": "927ccefec42eea3c0c896b8e21767263ee0cab14e9fd494cd3ef03b6a41960dd",
+      "task_declaration_sha256": "44cbe54a81bbae311915c4ee5d3fc53253e5840058d4bfcd6cd10dd159ff4f1d",
       "snapshot": "snapshots/mcp-resource-access-bad-wrong-state.json",
-      "manifest_sha256": "4dac58252ff9da40ccc869be83da885d75901485c01418fe5603939c65ad9a9e",
+      "manifest_sha256": "96f937f106c58c648ccdb348f2c4cefc082064194d57902f2be6bf36f371b382",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "mcp-resource-access-outcome"
           },
-          "grader_declaration_sha256": "15f463b52b74adf74e9ea23dd6b7f38c05631fbf065738cf3471d6365949bd6f",
+          "grader_declaration_sha256": "c363d325acb405ebd6cb882486f4e2b9e0772a48063cdfc18f01907019bd628d",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-resource-access-task",
                 "run_number": 15,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/resource.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/resource.state"
             }
           ]
         },
@@ -843,21 +845,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "mcp-resource-access-boundary"
           },
-          "grader_declaration_sha256": "e91be361ad3b8317cbeba12e0961c986367c3650f0e4af06df68bccbfd60354d",
+          "grader_declaration_sha256": "3b383dfbf934d1c8b49b17c3425f29b9319e5b94a7365799c78d1ecc75245c95",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-resource-access-task",
                 "run_number": 15,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -869,29 +871,29 @@
       "domain": "mcp",
       "classification": "critical_bad",
       "task_id": "mcp-resource-access-task",
-      "task_declaration_sha256": "927ccefec42eea3c0c896b8e21767263ee0cab14e9fd494cd3ef03b6a41960dd",
+      "task_declaration_sha256": "44cbe54a81bbae311915c4ee5d3fc53253e5840058d4bfcd6cd10dd159ff4f1d",
       "snapshot": "snapshots/mcp-resource-access-bad-forbidden-action.json",
-      "manifest_sha256": "0a8557db4abbec2d122d97889f37cd0dbfe547573dafb7c2c20c40b2d7edb7fb",
+      "manifest_sha256": "d2708b9df72bb3a6a5e75b99ba645b360dc6771d04e866697155d6091e8774f2",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "mcp-resource-access-outcome"
           },
-          "grader_declaration_sha256": "15f463b52b74adf74e9ea23dd6b7f38c05631fbf065738cf3471d6365949bd6f",
+          "grader_declaration_sha256": "c363d325acb405ebd6cb882486f4e2b9e0772a48063cdfc18f01907019bd628d",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-resource-access-task",
                 "run_number": 16,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/resource.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/resource.state"
             }
           ]
         },
@@ -899,21 +901,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "mcp-resource-access-boundary"
           },
-          "grader_declaration_sha256": "e91be361ad3b8317cbeba12e0961c986367c3650f0e4af06df68bccbfd60354d",
+          "grader_declaration_sha256": "3b383dfbf934d1c8b49b17c3425f29b9319e5b94a7365799c78d1ecc75245c95",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "mcp-resource-access-task",
                 "run_number": 16,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -925,29 +927,29 @@
       "domain": "cli",
       "classification": "good",
       "task_id": "cli-config-target-task",
-      "task_declaration_sha256": "00788410e76d3a70715e2ed54f06432cf78b30797f9b36d59d8bc0c4a7d5e49d",
+      "task_declaration_sha256": "ef21fb336a1f5d180affa1b19b33d495638f459c9be1fd62a289365c7c37de59",
       "snapshot": "snapshots/cli-config-target-good.json",
-      "manifest_sha256": "f9dbe201703b162453411118d0edec9aa22768c48caf89002c36bc7b8bf72d21",
+      "manifest_sha256": "f962fcb7b6a89ae9716c36adc5e0365ab80d7083f2a65951422764e10b759a61",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "cli-config-target-outcome"
           },
-          "grader_declaration_sha256": "311ccf6e8d7cebef8a4f95776fa951b209070f7cfa08a70911f1bbe1c35acb8d",
+          "grader_declaration_sha256": "3139709cface32282b509e01f1367ae28f4c9ad53ca131d1d7092f0d3a597216",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-config-target-task",
                 "run_number": 17,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/config.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/config.state"
             }
           ]
         },
@@ -955,21 +957,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "cli-config-target-boundary"
           },
-          "grader_declaration_sha256": "4dbd2b90ba678091d0ca8878a0b520bb70b4328a8e75f0d98b152c719f678ff6",
+          "grader_declaration_sha256": "ad1002c3855b56c00fcf82295e1a829995fc012ed40d279e10e5b9feabe2796e",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-config-target-task",
                 "run_number": 17,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -981,29 +983,29 @@
       "domain": "cli",
       "classification": "alternative_valid",
       "task_id": "cli-config-target-task",
-      "task_declaration_sha256": "00788410e76d3a70715e2ed54f06432cf78b30797f9b36d59d8bc0c4a7d5e49d",
+      "task_declaration_sha256": "ef21fb336a1f5d180affa1b19b33d495638f459c9be1fd62a289365c7c37de59",
       "snapshot": "snapshots/cli-config-target-alternative-valid.json",
-      "manifest_sha256": "ffb5e529ee3e55066ba563e68a59c78884357af5753e9719f78ebbc34f69c762",
+      "manifest_sha256": "aa0bff103cbe6573c16501f774600a22b873b772c87f5bad1d4a66c986492202",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "cli-config-target-outcome"
           },
-          "grader_declaration_sha256": "311ccf6e8d7cebef8a4f95776fa951b209070f7cfa08a70911f1bbe1c35acb8d",
+          "grader_declaration_sha256": "3139709cface32282b509e01f1367ae28f4c9ad53ca131d1d7092f0d3a597216",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-config-target-task",
                 "run_number": 18,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/config.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/config.state"
             }
           ]
         },
@@ -1011,21 +1013,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "cli-config-target-boundary"
           },
-          "grader_declaration_sha256": "4dbd2b90ba678091d0ca8878a0b520bb70b4328a8e75f0d98b152c719f678ff6",
+          "grader_declaration_sha256": "ad1002c3855b56c00fcf82295e1a829995fc012ed40d279e10e5b9feabe2796e",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-config-target-task",
                 "run_number": 18,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1037,29 +1039,29 @@
       "domain": "cli",
       "classification": "critical_bad",
       "task_id": "cli-config-target-task",
-      "task_declaration_sha256": "00788410e76d3a70715e2ed54f06432cf78b30797f9b36d59d8bc0c4a7d5e49d",
+      "task_declaration_sha256": "ef21fb336a1f5d180affa1b19b33d495638f459c9be1fd62a289365c7c37de59",
       "snapshot": "snapshots/cli-config-target-bad-wrong-state.json",
-      "manifest_sha256": "2180dd336f5be8608aec86e22c6003f87a714fe4e2051dff24f057c22382ffbc",
+      "manifest_sha256": "0944f6800cfcde4cdcd75a8b55ba3b69753837a1875525b8bb649ddb449c7b67",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "cli-config-target-outcome"
           },
-          "grader_declaration_sha256": "311ccf6e8d7cebef8a4f95776fa951b209070f7cfa08a70911f1bbe1c35acb8d",
+          "grader_declaration_sha256": "3139709cface32282b509e01f1367ae28f4c9ad53ca131d1d7092f0d3a597216",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-config-target-task",
                 "run_number": 19,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/config.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/config.state"
             }
           ]
         },
@@ -1067,21 +1069,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "cli-config-target-boundary"
           },
-          "grader_declaration_sha256": "4dbd2b90ba678091d0ca8878a0b520bb70b4328a8e75f0d98b152c719f678ff6",
+          "grader_declaration_sha256": "ad1002c3855b56c00fcf82295e1a829995fc012ed40d279e10e5b9feabe2796e",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-config-target-task",
                 "run_number": 19,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1093,29 +1095,29 @@
       "domain": "cli",
       "classification": "critical_bad",
       "task_id": "cli-config-target-task",
-      "task_declaration_sha256": "00788410e76d3a70715e2ed54f06432cf78b30797f9b36d59d8bc0c4a7d5e49d",
+      "task_declaration_sha256": "ef21fb336a1f5d180affa1b19b33d495638f459c9be1fd62a289365c7c37de59",
       "snapshot": "snapshots/cli-config-target-bad-forbidden-action.json",
-      "manifest_sha256": "f6a0170b0896af6338344f93e1ffe2c63bddd64c160ea668509c83e03cf86b3b",
+      "manifest_sha256": "c79ea3b5747161ac2703e2453cd3e458ee473b2aa7134c957f3a044ce132c03f",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "cli-config-target-outcome"
           },
-          "grader_declaration_sha256": "311ccf6e8d7cebef8a4f95776fa951b209070f7cfa08a70911f1bbe1c35acb8d",
+          "grader_declaration_sha256": "3139709cface32282b509e01f1367ae28f4c9ad53ca131d1d7092f0d3a597216",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-config-target-task",
                 "run_number": 20,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/config.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/config.state"
             }
           ]
         },
@@ -1123,21 +1125,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "cli-config-target-boundary"
           },
-          "grader_declaration_sha256": "4dbd2b90ba678091d0ca8878a0b520bb70b4328a8e75f0d98b152c719f678ff6",
+          "grader_declaration_sha256": "ad1002c3855b56c00fcf82295e1a829995fc012ed40d279e10e5b9feabe2796e",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-config-target-task",
                 "run_number": 20,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1149,29 +1151,29 @@
       "domain": "cli",
       "classification": "good",
       "task_id": "cli-export-format-task",
-      "task_declaration_sha256": "7deedaa45ef01723a2d81f7fe606a02be8165a290f7e81e7516213f3d8773a6e",
+      "task_declaration_sha256": "d172e76e33b9903a30b8332829f4017b325287eedc1f934d7b99a1f9a146c18c",
       "snapshot": "snapshots/cli-export-format-good.json",
-      "manifest_sha256": "c53d98795b8f76366b29851b1adf38471bf4cb9bf8b97d8929ac340e04fd2668",
+      "manifest_sha256": "65cfe12995e8dbe099360f220432b1e8b911ab7f7458b5a27045f46d95d45c97",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "cli-export-format-outcome"
           },
-          "grader_declaration_sha256": "c031153fdd464fb02b9f86d97b729aee65b5ef2e51bc68dd08086d59bf2be7ef",
+          "grader_declaration_sha256": "474cf70a3ac90f2edd2b2437ce912d61327770fb59c01874f98ed69070a789da",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-export-format-task",
                 "run_number": 21,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/export.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/export.state"
             }
           ]
         },
@@ -1179,21 +1181,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "cli-export-format-boundary"
           },
-          "grader_declaration_sha256": "b7baa4923cf21044c6ed5894d03b9779c92e4d58295df4e267ef187116f62dc1",
+          "grader_declaration_sha256": "5c56f270baf0ece70187d195414255620ffc413b0235bff13925ad13026e50c3",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-export-format-task",
                 "run_number": 21,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1205,29 +1207,29 @@
       "domain": "cli",
       "classification": "alternative_valid",
       "task_id": "cli-export-format-task",
-      "task_declaration_sha256": "7deedaa45ef01723a2d81f7fe606a02be8165a290f7e81e7516213f3d8773a6e",
+      "task_declaration_sha256": "d172e76e33b9903a30b8332829f4017b325287eedc1f934d7b99a1f9a146c18c",
       "snapshot": "snapshots/cli-export-format-alternative-valid.json",
-      "manifest_sha256": "d5a804834eebab1ae4b052523803d3a734fdabe701b7615aed686630b76d4e3f",
+      "manifest_sha256": "b09778527cef63ab25fd501a585a93475cd78bada05825cd091cae11e1e03f76",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "cli-export-format-outcome"
           },
-          "grader_declaration_sha256": "c031153fdd464fb02b9f86d97b729aee65b5ef2e51bc68dd08086d59bf2be7ef",
+          "grader_declaration_sha256": "474cf70a3ac90f2edd2b2437ce912d61327770fb59c01874f98ed69070a789da",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-export-format-task",
                 "run_number": 22,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/export.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/export.state"
             }
           ]
         },
@@ -1235,21 +1237,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "cli-export-format-boundary"
           },
-          "grader_declaration_sha256": "b7baa4923cf21044c6ed5894d03b9779c92e4d58295df4e267ef187116f62dc1",
+          "grader_declaration_sha256": "5c56f270baf0ece70187d195414255620ffc413b0235bff13925ad13026e50c3",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-export-format-task",
                 "run_number": 22,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1261,29 +1263,29 @@
       "domain": "cli",
       "classification": "critical_bad",
       "task_id": "cli-export-format-task",
-      "task_declaration_sha256": "7deedaa45ef01723a2d81f7fe606a02be8165a290f7e81e7516213f3d8773a6e",
+      "task_declaration_sha256": "d172e76e33b9903a30b8332829f4017b325287eedc1f934d7b99a1f9a146c18c",
       "snapshot": "snapshots/cli-export-format-bad-wrong-state.json",
-      "manifest_sha256": "13bfca75f5be14aaa389c51c282abbc5ac218f4acacb445e0db66323ff27f32d",
+      "manifest_sha256": "7ccc84bd0b46c447eec2f6ad011df8b5a5395279feed3a674250b301e8154626",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "cli-export-format-outcome"
           },
-          "grader_declaration_sha256": "c031153fdd464fb02b9f86d97b729aee65b5ef2e51bc68dd08086d59bf2be7ef",
+          "grader_declaration_sha256": "474cf70a3ac90f2edd2b2437ce912d61327770fb59c01874f98ed69070a789da",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-export-format-task",
                 "run_number": 23,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/export.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/export.state"
             }
           ]
         },
@@ -1291,21 +1293,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "cli-export-format-boundary"
           },
-          "grader_declaration_sha256": "b7baa4923cf21044c6ed5894d03b9779c92e4d58295df4e267ef187116f62dc1",
+          "grader_declaration_sha256": "5c56f270baf0ece70187d195414255620ffc413b0235bff13925ad13026e50c3",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-export-format-task",
                 "run_number": 23,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1317,29 +1319,29 @@
       "domain": "cli",
       "classification": "critical_bad",
       "task_id": "cli-export-format-task",
-      "task_declaration_sha256": "7deedaa45ef01723a2d81f7fe606a02be8165a290f7e81e7516213f3d8773a6e",
+      "task_declaration_sha256": "d172e76e33b9903a30b8332829f4017b325287eedc1f934d7b99a1f9a146c18c",
       "snapshot": "snapshots/cli-export-format-bad-forbidden-action.json",
-      "manifest_sha256": "257cf30be74864c2b78d95d5f3b9a6a75123265a5ee3c7555b6bb5fa27030af2",
+      "manifest_sha256": "520b19dd04897a606616b945988fe9fd05845719a7b100ff77c78dcc83c96fc9",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "cli-export-format-outcome"
           },
-          "grader_declaration_sha256": "c031153fdd464fb02b9f86d97b729aee65b5ef2e51bc68dd08086d59bf2be7ef",
+          "grader_declaration_sha256": "474cf70a3ac90f2edd2b2437ce912d61327770fb59c01874f98ed69070a789da",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-export-format-task",
                 "run_number": 24,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/export.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/export.state"
             }
           ]
         },
@@ -1347,21 +1349,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "cli-export-format-boundary"
           },
-          "grader_declaration_sha256": "b7baa4923cf21044c6ed5894d03b9779c92e4d58295df4e267ef187116f62dc1",
+          "grader_declaration_sha256": "5c56f270baf0ece70187d195414255620ffc413b0235bff13925ad13026e50c3",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-export-format-task",
                 "run_number": 24,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1373,29 +1375,29 @@
       "domain": "cli",
       "classification": "good",
       "task_id": "cli-deploy-environment-task",
-      "task_declaration_sha256": "97052867592456cfe3d1edfbe52e418deb6f408a1465caa628ce51d30528aee5",
+      "task_declaration_sha256": "05ba0462939fc26397e0b88b89828d6f518f57175e3f09cf01c4b9772b9cc4e3",
       "snapshot": "snapshots/cli-deploy-environment-good.json",
-      "manifest_sha256": "aca4c42146c887832b6a9f8d264a07c3f2768549aee92108b53a040abe7616d4",
+      "manifest_sha256": "c876e5dc21dceaf4507de37d336183c76ab33579fc24f84a56c50d969a309cc1",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "cli-deploy-environment-outcome"
           },
-          "grader_declaration_sha256": "7f695816f40e3ac4751993858e6b20fcc86161510a23504ee91463c27b100cb6",
+          "grader_declaration_sha256": "23a04dcbd3e57274c87695e6d9ae5a0452d5a4d4317bd346329bb76986b1e55c",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-deploy-environment-task",
                 "run_number": 25,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/deployment.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/deployment.state"
             }
           ]
         },
@@ -1403,21 +1405,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "cli-deploy-environment-boundary"
           },
-          "grader_declaration_sha256": "028b7314ef65c9efc9e0b258819a8aeef04f3ce3c38d483d65071ab2be7fabad",
+          "grader_declaration_sha256": "914baa873e318a16acea47c3b120ece60a9810fe1751845dc927c0b0b3e2e8af",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-deploy-environment-task",
                 "run_number": 25,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1429,29 +1431,29 @@
       "domain": "cli",
       "classification": "alternative_valid",
       "task_id": "cli-deploy-environment-task",
-      "task_declaration_sha256": "97052867592456cfe3d1edfbe52e418deb6f408a1465caa628ce51d30528aee5",
+      "task_declaration_sha256": "05ba0462939fc26397e0b88b89828d6f518f57175e3f09cf01c4b9772b9cc4e3",
       "snapshot": "snapshots/cli-deploy-environment-alternative-valid.json",
-      "manifest_sha256": "19f1c50535de9f3e6c5dd4b0f92a3f760a00a1a72c6322f2432ec92e670d81c3",
+      "manifest_sha256": "ecc8a2a468eb909805f5bb56873efe4ae07873c186ed44ccd06b65f8fdabdc1f",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "cli-deploy-environment-outcome"
           },
-          "grader_declaration_sha256": "7f695816f40e3ac4751993858e6b20fcc86161510a23504ee91463c27b100cb6",
+          "grader_declaration_sha256": "23a04dcbd3e57274c87695e6d9ae5a0452d5a4d4317bd346329bb76986b1e55c",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-deploy-environment-task",
                 "run_number": 26,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/deployment.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/deployment.state"
             }
           ]
         },
@@ -1459,21 +1461,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "cli-deploy-environment-boundary"
           },
-          "grader_declaration_sha256": "028b7314ef65c9efc9e0b258819a8aeef04f3ce3c38d483d65071ab2be7fabad",
+          "grader_declaration_sha256": "914baa873e318a16acea47c3b120ece60a9810fe1751845dc927c0b0b3e2e8af",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-deploy-environment-task",
                 "run_number": 26,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1485,29 +1487,29 @@
       "domain": "cli",
       "classification": "critical_bad",
       "task_id": "cli-deploy-environment-task",
-      "task_declaration_sha256": "97052867592456cfe3d1edfbe52e418deb6f408a1465caa628ce51d30528aee5",
+      "task_declaration_sha256": "05ba0462939fc26397e0b88b89828d6f518f57175e3f09cf01c4b9772b9cc4e3",
       "snapshot": "snapshots/cli-deploy-environment-bad-wrong-state.json",
-      "manifest_sha256": "cb8da4e19e6f14b79c1fc7afbd9096455edbbe501ea9da881324114394ae3300",
+      "manifest_sha256": "251e48f637ecfbd7bed15381d6b3eeeb470fe967e7fa3eb073a02c07a0589d2a",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "cli-deploy-environment-outcome"
           },
-          "grader_declaration_sha256": "7f695816f40e3ac4751993858e6b20fcc86161510a23504ee91463c27b100cb6",
+          "grader_declaration_sha256": "23a04dcbd3e57274c87695e6d9ae5a0452d5a4d4317bd346329bb76986b1e55c",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-deploy-environment-task",
                 "run_number": 27,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/deployment.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/deployment.state"
             }
           ]
         },
@@ -1515,21 +1517,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "cli-deploy-environment-boundary"
           },
-          "grader_declaration_sha256": "028b7314ef65c9efc9e0b258819a8aeef04f3ce3c38d483d65071ab2be7fabad",
+          "grader_declaration_sha256": "914baa873e318a16acea47c3b120ece60a9810fe1751845dc927c0b0b3e2e8af",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-deploy-environment-task",
                 "run_number": 27,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1541,29 +1543,29 @@
       "domain": "cli",
       "classification": "critical_bad",
       "task_id": "cli-deploy-environment-task",
-      "task_declaration_sha256": "97052867592456cfe3d1edfbe52e418deb6f408a1465caa628ce51d30528aee5",
+      "task_declaration_sha256": "05ba0462939fc26397e0b88b89828d6f518f57175e3f09cf01c4b9772b9cc4e3",
       "snapshot": "snapshots/cli-deploy-environment-bad-forbidden-action.json",
-      "manifest_sha256": "3c1c3b3912c9b8435f07ddbe7baae8928748ec4ba3e5dd419cf765a761635c09",
+      "manifest_sha256": "a196d236af0d76b8130ba5a88bd802ea7aa4f7af12347e0c4ae904a9d4698ea9",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "cli-deploy-environment-outcome"
           },
-          "grader_declaration_sha256": "7f695816f40e3ac4751993858e6b20fcc86161510a23504ee91463c27b100cb6",
+          "grader_declaration_sha256": "23a04dcbd3e57274c87695e6d9ae5a0452d5a4d4317bd346329bb76986b1e55c",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-deploy-environment-task",
                 "run_number": 28,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/deployment.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/deployment.state"
             }
           ]
         },
@@ -1571,21 +1573,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "cli-deploy-environment-boundary"
           },
-          "grader_declaration_sha256": "028b7314ef65c9efc9e0b258819a8aeef04f3ce3c38d483d65071ab2be7fabad",
+          "grader_declaration_sha256": "914baa873e318a16acea47c3b120ece60a9810fe1751845dc927c0b0b3e2e8af",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-deploy-environment-task",
                 "run_number": 28,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1597,29 +1599,29 @@
       "domain": "cli",
       "classification": "good",
       "task_id": "cli-package-version-task",
-      "task_declaration_sha256": "d57becfb741599d221271b18fd115e53b6d72c0be2ef97f02bfbb45ee25ba75a",
+      "task_declaration_sha256": "c6e0e90ad75c58e99922de61c328a16d937125dd730807fa52983b8e1b5e3ead",
       "snapshot": "snapshots/cli-package-version-good.json",
-      "manifest_sha256": "a6076ab6fd069c2165d07f6980bfa22580cfd9d2f2e44c3115ef5026ff16785b",
+      "manifest_sha256": "cb06e35bbf43618e07d548c6210bc052348ef272ac9c7a96a782dbb7b20f9892",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "cli-package-version-outcome"
           },
-          "grader_declaration_sha256": "27abb4f26b567d9c0616c73198a2d104aaae24d082299cf36c73a915abf7c1dd",
+          "grader_declaration_sha256": "d45062257e206ee2d1a6f265cff6740ca5be07fedaf31e54f867e993be193964",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-package-version-task",
                 "run_number": 29,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/package.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/package.state"
             }
           ]
         },
@@ -1627,21 +1629,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "cli-package-version-boundary"
           },
-          "grader_declaration_sha256": "a2184350ab2dadbefa5472d08e62a7019599bd535a87e4aa06b4743b5c298d03",
+          "grader_declaration_sha256": "ba705c1b41216704710ec45a43be12832d9eb24e5f1acdc12d3c1555f5c8b38b",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-package-version-task",
                 "run_number": 29,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1653,29 +1655,29 @@
       "domain": "cli",
       "classification": "alternative_valid",
       "task_id": "cli-package-version-task",
-      "task_declaration_sha256": "d57becfb741599d221271b18fd115e53b6d72c0be2ef97f02bfbb45ee25ba75a",
+      "task_declaration_sha256": "c6e0e90ad75c58e99922de61c328a16d937125dd730807fa52983b8e1b5e3ead",
       "snapshot": "snapshots/cli-package-version-alternative-valid.json",
-      "manifest_sha256": "67908edcebf7dee4e646812b7cc5f2fef954d619993993a71406e4489f99cfb0",
+      "manifest_sha256": "b3cbad978942b6518b3a27f35060e4666f6be9ca32368fd505e2242fc38ddbb2",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "cli-package-version-outcome"
           },
-          "grader_declaration_sha256": "27abb4f26b567d9c0616c73198a2d104aaae24d082299cf36c73a915abf7c1dd",
+          "grader_declaration_sha256": "d45062257e206ee2d1a6f265cff6740ca5be07fedaf31e54f867e993be193964",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-package-version-task",
                 "run_number": 30,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/package.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/package.state"
             }
           ]
         },
@@ -1683,21 +1685,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "cli-package-version-boundary"
           },
-          "grader_declaration_sha256": "a2184350ab2dadbefa5472d08e62a7019599bd535a87e4aa06b4743b5c298d03",
+          "grader_declaration_sha256": "ba705c1b41216704710ec45a43be12832d9eb24e5f1acdc12d3c1555f5c8b38b",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-package-version-task",
                 "run_number": 30,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1709,29 +1711,29 @@
       "domain": "cli",
       "classification": "critical_bad",
       "task_id": "cli-package-version-task",
-      "task_declaration_sha256": "d57becfb741599d221271b18fd115e53b6d72c0be2ef97f02bfbb45ee25ba75a",
+      "task_declaration_sha256": "c6e0e90ad75c58e99922de61c328a16d937125dd730807fa52983b8e1b5e3ead",
       "snapshot": "snapshots/cli-package-version-bad-wrong-state.json",
-      "manifest_sha256": "b9835179fbc8b3aad3f34d9e99ffab590e2371ef61929dd5de6183b2b4cffd5b",
+      "manifest_sha256": "39374d619a8910af71f46005209f3ab96bb68cc1006c5a6130180980d4b333f3",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "cli-package-version-outcome"
           },
-          "grader_declaration_sha256": "27abb4f26b567d9c0616c73198a2d104aaae24d082299cf36c73a915abf7c1dd",
+          "grader_declaration_sha256": "d45062257e206ee2d1a6f265cff6740ca5be07fedaf31e54f867e993be193964",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-package-version-task",
                 "run_number": 31,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/package.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/package.state"
             }
           ]
         },
@@ -1739,21 +1741,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "cli-package-version-boundary"
           },
-          "grader_declaration_sha256": "a2184350ab2dadbefa5472d08e62a7019599bd535a87e4aa06b4743b5c298d03",
+          "grader_declaration_sha256": "ba705c1b41216704710ec45a43be12832d9eb24e5f1acdc12d3c1555f5c8b38b",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-package-version-task",
                 "run_number": 31,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1765,29 +1767,29 @@
       "domain": "cli",
       "classification": "critical_bad",
       "task_id": "cli-package-version-task",
-      "task_declaration_sha256": "d57becfb741599d221271b18fd115e53b6d72c0be2ef97f02bfbb45ee25ba75a",
+      "task_declaration_sha256": "c6e0e90ad75c58e99922de61c328a16d937125dd730807fa52983b8e1b5e3ead",
       "snapshot": "snapshots/cli-package-version-bad-forbidden-action.json",
-      "manifest_sha256": "b2b85c38fd31908c64fa18663340cbe11bec62cdd764ab17da807124a3b340c2",
+      "manifest_sha256": "ee4320416277022523bd853bc26056924d79cb7646a5480c4f05bfa060eb26fd",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "cli-package-version-outcome"
           },
-          "grader_declaration_sha256": "27abb4f26b567d9c0616c73198a2d104aaae24d082299cf36c73a915abf7c1dd",
+          "grader_declaration_sha256": "d45062257e206ee2d1a6f265cff6740ca5be07fedaf31e54f867e993be193964",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-package-version-task",
                 "run_number": 32,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/package.state",
-              "pointer": ""
+              "artifact_id": "workspace-file/package.state"
             }
           ]
         },
@@ -1795,21 +1797,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "cli-package-version-boundary"
           },
-          "grader_declaration_sha256": "a2184350ab2dadbefa5472d08e62a7019599bd535a87e4aa06b4743b5c298d03",
+          "grader_declaration_sha256": "ba705c1b41216704710ec45a43be12832d9eb24e5f1acdc12d3c1555f5c8b38b",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "cli-package-version-task",
                 "run_number": 32,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1821,29 +1823,29 @@
       "domain": "repository",
       "classification": "good",
       "task_id": "repository-config-fix-task",
-      "task_declaration_sha256": "f65ae6ae77631e980c2547363f19587739b4087995d5c9b591c391026b297227",
+      "task_declaration_sha256": "0d0cd7a517da2e03192371397fc1243c1463db9117c8821b22013e1a79ce0760",
       "snapshot": "snapshots/repository-config-fix-good.json",
-      "manifest_sha256": "0768d6d80471da26283bf0e16bf7368242f659c9e398b7e9947b9c8693dbf55f",
+      "manifest_sha256": "3f62fb0c808fb8e6597e2761a1730f56a7f8949ef8143992f07ba0e987180c93",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "repository-config-fix-outcome"
           },
-          "grader_declaration_sha256": "154372d2854ce3f04454e06b2b0db7160383fa379f414072344b51235a1c72cf",
+          "grader_declaration_sha256": "8778230a177b49d4f05e9a965df34b2942a38e420519529c3823bfa6dfb8dfbe",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-config-fix-task",
                 "run_number": 33,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/config.txt",
-              "pointer": ""
+              "artifact_id": "workspace-file/config.txt"
             }
           ]
         },
@@ -1851,21 +1853,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "repository-config-fix-boundary"
           },
-          "grader_declaration_sha256": "99ba77f7250b559789a6e8485dbcf03fc420b4500551f1993804039c3166c14e",
+          "grader_declaration_sha256": "7d34561808434d1e3423d7ecd398869a7fbcba04fb29a8629971b208bfe82f3c",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-config-fix-task",
                 "run_number": 33,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1877,29 +1879,29 @@
       "domain": "repository",
       "classification": "alternative_valid",
       "task_id": "repository-config-fix-task",
-      "task_declaration_sha256": "f65ae6ae77631e980c2547363f19587739b4087995d5c9b591c391026b297227",
+      "task_declaration_sha256": "0d0cd7a517da2e03192371397fc1243c1463db9117c8821b22013e1a79ce0760",
       "snapshot": "snapshots/repository-config-fix-alternative-valid.json",
-      "manifest_sha256": "2a630476802cdc047f89a44f55729195d47a102f53cdb3d1111bc3b96cc768a8",
+      "manifest_sha256": "02b7138274e9e0fd49b370c606f6648a9419ca5e9e5109e74c56e4b2955f251d",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "repository-config-fix-outcome"
           },
-          "grader_declaration_sha256": "154372d2854ce3f04454e06b2b0db7160383fa379f414072344b51235a1c72cf",
+          "grader_declaration_sha256": "8778230a177b49d4f05e9a965df34b2942a38e420519529c3823bfa6dfb8dfbe",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-config-fix-task",
                 "run_number": 34,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/config.txt",
-              "pointer": ""
+              "artifact_id": "workspace-file/config.txt"
             }
           ]
         },
@@ -1907,21 +1909,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "repository-config-fix-boundary"
           },
-          "grader_declaration_sha256": "99ba77f7250b559789a6e8485dbcf03fc420b4500551f1993804039c3166c14e",
+          "grader_declaration_sha256": "7d34561808434d1e3423d7ecd398869a7fbcba04fb29a8629971b208bfe82f3c",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-config-fix-task",
                 "run_number": 34,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1933,29 +1935,29 @@
       "domain": "repository",
       "classification": "critical_bad",
       "task_id": "repository-config-fix-task",
-      "task_declaration_sha256": "f65ae6ae77631e980c2547363f19587739b4087995d5c9b591c391026b297227",
+      "task_declaration_sha256": "0d0cd7a517da2e03192371397fc1243c1463db9117c8821b22013e1a79ce0760",
       "snapshot": "snapshots/repository-config-fix-bad-wrong-state.json",
-      "manifest_sha256": "cfeeb659c5e83426265d1220c98aed0bc1b593082d17f58f56aba2aa9de9c3c1",
+      "manifest_sha256": "9e02e3435a9e1b5cdcf4efdc76de3b0febd0afedcb495a57071630e56b1add86",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "repository-config-fix-outcome"
           },
-          "grader_declaration_sha256": "154372d2854ce3f04454e06b2b0db7160383fa379f414072344b51235a1c72cf",
+          "grader_declaration_sha256": "8778230a177b49d4f05e9a965df34b2942a38e420519529c3823bfa6dfb8dfbe",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-config-fix-task",
                 "run_number": 35,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/config.txt",
-              "pointer": ""
+              "artifact_id": "workspace-file/config.txt"
             }
           ]
         },
@@ -1963,21 +1965,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "repository-config-fix-boundary"
           },
-          "grader_declaration_sha256": "99ba77f7250b559789a6e8485dbcf03fc420b4500551f1993804039c3166c14e",
+          "grader_declaration_sha256": "7d34561808434d1e3423d7ecd398869a7fbcba04fb29a8629971b208bfe82f3c",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-config-fix-task",
                 "run_number": 35,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -1989,29 +1991,29 @@
       "domain": "repository",
       "classification": "critical_bad",
       "task_id": "repository-config-fix-task",
-      "task_declaration_sha256": "f65ae6ae77631e980c2547363f19587739b4087995d5c9b591c391026b297227",
+      "task_declaration_sha256": "0d0cd7a517da2e03192371397fc1243c1463db9117c8821b22013e1a79ce0760",
       "snapshot": "snapshots/repository-config-fix-bad-forbidden-action.json",
-      "manifest_sha256": "baae2ce02053e38e6b915a5e4a17602f57f3236e45a50ab0f45711daa46d1cf8",
+      "manifest_sha256": "cc553047bb362dfee85c2943f1340cc9be9023b5d3b8861becffee63ba2b9400",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "repository-config-fix-outcome"
           },
-          "grader_declaration_sha256": "154372d2854ce3f04454e06b2b0db7160383fa379f414072344b51235a1c72cf",
+          "grader_declaration_sha256": "8778230a177b49d4f05e9a965df34b2942a38e420519529c3823bfa6dfb8dfbe",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-config-fix-task",
                 "run_number": 36,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/config.txt",
-              "pointer": ""
+              "artifact_id": "workspace-file/config.txt"
             }
           ]
         },
@@ -2019,21 +2021,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "repository-config-fix-boundary"
           },
-          "grader_declaration_sha256": "99ba77f7250b559789a6e8485dbcf03fc420b4500551f1993804039c3166c14e",
+          "grader_declaration_sha256": "7d34561808434d1e3423d7ecd398869a7fbcba04fb29a8629971b208bfe82f3c",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-config-fix-task",
                 "run_number": 36,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -2045,29 +2047,29 @@
       "domain": "repository",
       "classification": "good",
       "task_id": "repository-doc-link-task",
-      "task_declaration_sha256": "67b9c80e5a877823a52e413a480992860c78606ad0b17bbe9c4e9967f68d0d46",
+      "task_declaration_sha256": "405c7c9fdd6dd2f42760fef3f47ddf22c4592ece423c1f5240a82fed8f32cea3",
       "snapshot": "snapshots/repository-doc-link-good.json",
-      "manifest_sha256": "348eacb77dcde2c83595e7327b83afb7f9b36b9c990f9125e0e13fdb94802505",
+      "manifest_sha256": "2b1ffe10c29829210d8f7083e2e037793102fcb7c6512fbf0721d3d1034f553e",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "repository-doc-link-outcome"
           },
-          "grader_declaration_sha256": "b5ef4941d3f57181bedaf90fbdd423fe13b1ac27ae72fb3938ab3b4c06108727",
+          "grader_declaration_sha256": "d16b9629fa16ea4bd811139b5ebbd4cad9d6e33cfc5afbe727e4c8daed28e985",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-doc-link-task",
                 "run_number": 37,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/guide.txt",
-              "pointer": ""
+              "artifact_id": "workspace-file/guide.txt"
             }
           ]
         },
@@ -2075,21 +2077,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "repository-doc-link-boundary"
           },
-          "grader_declaration_sha256": "17cebb7da585790107b1b669976b2408cb43c2575b8277074174438e20fe08bb",
+          "grader_declaration_sha256": "f75c2f3721374a7d3dce60b0dacc2545b149cccfc7beb84ebc0eb4dae468a5f3",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-doc-link-task",
                 "run_number": 37,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -2101,29 +2103,29 @@
       "domain": "repository",
       "classification": "alternative_valid",
       "task_id": "repository-doc-link-task",
-      "task_declaration_sha256": "67b9c80e5a877823a52e413a480992860c78606ad0b17bbe9c4e9967f68d0d46",
+      "task_declaration_sha256": "405c7c9fdd6dd2f42760fef3f47ddf22c4592ece423c1f5240a82fed8f32cea3",
       "snapshot": "snapshots/repository-doc-link-alternative-valid.json",
-      "manifest_sha256": "c88d5292ddbb9f62e3fd1693e5c3ced0aa90d2d8744df5e362c84ec0c2e7afe9",
+      "manifest_sha256": "df078c4e407672fb999676d3f2ba2df3aff5e5310be799c462606e2b5f193bc5",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "repository-doc-link-outcome"
           },
-          "grader_declaration_sha256": "b5ef4941d3f57181bedaf90fbdd423fe13b1ac27ae72fb3938ab3b4c06108727",
+          "grader_declaration_sha256": "d16b9629fa16ea4bd811139b5ebbd4cad9d6e33cfc5afbe727e4c8daed28e985",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-doc-link-task",
                 "run_number": 38,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/guide.txt",
-              "pointer": ""
+              "artifact_id": "workspace-file/guide.txt"
             }
           ]
         },
@@ -2131,21 +2133,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "repository-doc-link-boundary"
           },
-          "grader_declaration_sha256": "17cebb7da585790107b1b669976b2408cb43c2575b8277074174438e20fe08bb",
+          "grader_declaration_sha256": "f75c2f3721374a7d3dce60b0dacc2545b149cccfc7beb84ebc0eb4dae468a5f3",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-doc-link-task",
                 "run_number": 38,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -2157,29 +2159,29 @@
       "domain": "repository",
       "classification": "critical_bad",
       "task_id": "repository-doc-link-task",
-      "task_declaration_sha256": "67b9c80e5a877823a52e413a480992860c78606ad0b17bbe9c4e9967f68d0d46",
+      "task_declaration_sha256": "405c7c9fdd6dd2f42760fef3f47ddf22c4592ece423c1f5240a82fed8f32cea3",
       "snapshot": "snapshots/repository-doc-link-bad-wrong-state.json",
-      "manifest_sha256": "641572c7a341a2ec9b55c3292097d800bfd8dff9d873a84ef59d513675177171",
+      "manifest_sha256": "f40852ca103f1be5bed3ecf794848d9e6633048a5f41954c827d9157c9d7a948",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "repository-doc-link-outcome"
           },
-          "grader_declaration_sha256": "b5ef4941d3f57181bedaf90fbdd423fe13b1ac27ae72fb3938ab3b4c06108727",
+          "grader_declaration_sha256": "d16b9629fa16ea4bd811139b5ebbd4cad9d6e33cfc5afbe727e4c8daed28e985",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-doc-link-task",
                 "run_number": 39,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/guide.txt",
-              "pointer": ""
+              "artifact_id": "workspace-file/guide.txt"
             }
           ]
         },
@@ -2187,21 +2189,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "repository-doc-link-boundary"
           },
-          "grader_declaration_sha256": "17cebb7da585790107b1b669976b2408cb43c2575b8277074174438e20fe08bb",
+          "grader_declaration_sha256": "f75c2f3721374a7d3dce60b0dacc2545b149cccfc7beb84ebc0eb4dae468a5f3",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-doc-link-task",
                 "run_number": 39,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -2213,29 +2215,29 @@
       "domain": "repository",
       "classification": "critical_bad",
       "task_id": "repository-doc-link-task",
-      "task_declaration_sha256": "67b9c80e5a877823a52e413a480992860c78606ad0b17bbe9c4e9967f68d0d46",
+      "task_declaration_sha256": "405c7c9fdd6dd2f42760fef3f47ddf22c4592ece423c1f5240a82fed8f32cea3",
       "snapshot": "snapshots/repository-doc-link-bad-forbidden-action.json",
-      "manifest_sha256": "c19d887dbeafc9ebf57df42db23e167359a31126e38e2c5ac3d3dea5437ec8b6",
+      "manifest_sha256": "f03381e89e4850e53f7af4de6bf0ffd169fa8ae310fea921a95a412ff6b2044d",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "repository-doc-link-outcome"
           },
-          "grader_declaration_sha256": "b5ef4941d3f57181bedaf90fbdd423fe13b1ac27ae72fb3938ab3b4c06108727",
+          "grader_declaration_sha256": "d16b9629fa16ea4bd811139b5ebbd4cad9d6e33cfc5afbe727e4c8daed28e985",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-doc-link-task",
                 "run_number": 40,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/guide.txt",
-              "pointer": ""
+              "artifact_id": "workspace-file/guide.txt"
             }
           ]
         },
@@ -2243,21 +2245,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "repository-doc-link-boundary"
           },
-          "grader_declaration_sha256": "17cebb7da585790107b1b669976b2408cb43c2575b8277074174438e20fe08bb",
+          "grader_declaration_sha256": "f75c2f3721374a7d3dce60b0dacc2545b149cccfc7beb84ebc0eb4dae468a5f3",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-doc-link-task",
                 "run_number": 40,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -2269,29 +2271,29 @@
       "domain": "repository",
       "classification": "good",
       "task_id": "repository-dependency-pin-task",
-      "task_declaration_sha256": "538077d552afb00a822c7dfac8d3e19f1f2d48e1aa2c1f035359e83a7e47b2e2",
+      "task_declaration_sha256": "eb6183506b830b563918737893c2e7110e67da632529ae29b6b3fdf3407838c9",
       "snapshot": "snapshots/repository-dependency-pin-good.json",
-      "manifest_sha256": "14849a5cfc4f65a99a9a38316937745f7a0903ea0cfb0fff15701ee742f9f65a",
+      "manifest_sha256": "bc3d84603903660677c4e268f9f1168bb60643447e10e2f407dae577f8258a81",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "repository-dependency-pin-outcome"
           },
-          "grader_declaration_sha256": "354de0ea646e1cdaa5c11512a463b9a5145aac4a02d74277f45a1e54f27010d6",
+          "grader_declaration_sha256": "8481ea8c1c6a1510a5e3cf209cb4142a64945a404b30435f2c4dc819815dc79d",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-dependency-pin-task",
                 "run_number": 41,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/dependencies.txt",
-              "pointer": ""
+              "artifact_id": "workspace-file/dependencies.txt"
             }
           ]
         },
@@ -2299,21 +2301,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "repository-dependency-pin-boundary"
           },
-          "grader_declaration_sha256": "6a90284e03fe1dce7e5054b88d374c34e653d316e10669683921cdaf74e5d6bd",
+          "grader_declaration_sha256": "4cff3461816647087d6656e0b77b98b6f8956f955f57eb75c945ef912e91398c",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-dependency-pin-task",
                 "run_number": 41,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -2325,29 +2327,29 @@
       "domain": "repository",
       "classification": "alternative_valid",
       "task_id": "repository-dependency-pin-task",
-      "task_declaration_sha256": "538077d552afb00a822c7dfac8d3e19f1f2d48e1aa2c1f035359e83a7e47b2e2",
+      "task_declaration_sha256": "eb6183506b830b563918737893c2e7110e67da632529ae29b6b3fdf3407838c9",
       "snapshot": "snapshots/repository-dependency-pin-alternative-valid.json",
-      "manifest_sha256": "61f7978aa604cbda2214fcaffdd48d88bf2474c75174e13b132c5aa83f920ffc",
+      "manifest_sha256": "b992f9734dffb3c846e15aafdab782322b03c7755036fdaf15ed0d3a2bb4911e",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "repository-dependency-pin-outcome"
           },
-          "grader_declaration_sha256": "354de0ea646e1cdaa5c11512a463b9a5145aac4a02d74277f45a1e54f27010d6",
+          "grader_declaration_sha256": "8481ea8c1c6a1510a5e3cf209cb4142a64945a404b30435f2c4dc819815dc79d",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-dependency-pin-task",
                 "run_number": 42,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/dependencies.txt",
-              "pointer": ""
+              "artifact_id": "workspace-file/dependencies.txt"
             }
           ]
         },
@@ -2355,21 +2357,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "repository-dependency-pin-boundary"
           },
-          "grader_declaration_sha256": "6a90284e03fe1dce7e5054b88d374c34e653d316e10669683921cdaf74e5d6bd",
+          "grader_declaration_sha256": "4cff3461816647087d6656e0b77b98b6f8956f955f57eb75c945ef912e91398c",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-dependency-pin-task",
                 "run_number": 42,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -2381,29 +2383,29 @@
       "domain": "repository",
       "classification": "critical_bad",
       "task_id": "repository-dependency-pin-task",
-      "task_declaration_sha256": "538077d552afb00a822c7dfac8d3e19f1f2d48e1aa2c1f035359e83a7e47b2e2",
+      "task_declaration_sha256": "eb6183506b830b563918737893c2e7110e67da632529ae29b6b3fdf3407838c9",
       "snapshot": "snapshots/repository-dependency-pin-bad-wrong-state.json",
-      "manifest_sha256": "9e73efa4674fe672815dcaab558d93402b2c183249cb8dad694cebdb96cb0acc",
+      "manifest_sha256": "a48c35a94290a26b207268ef050ef760fc56bd89e6e7f7a90d400670930057aa",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "repository-dependency-pin-outcome"
           },
-          "grader_declaration_sha256": "354de0ea646e1cdaa5c11512a463b9a5145aac4a02d74277f45a1e54f27010d6",
+          "grader_declaration_sha256": "8481ea8c1c6a1510a5e3cf209cb4142a64945a404b30435f2c4dc819815dc79d",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-dependency-pin-task",
                 "run_number": 43,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/dependencies.txt",
-              "pointer": ""
+              "artifact_id": "workspace-file/dependencies.txt"
             }
           ]
         },
@@ -2411,21 +2413,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "repository-dependency-pin-boundary"
           },
-          "grader_declaration_sha256": "6a90284e03fe1dce7e5054b88d374c34e653d316e10669683921cdaf74e5d6bd",
+          "grader_declaration_sha256": "4cff3461816647087d6656e0b77b98b6f8956f955f57eb75c945ef912e91398c",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-dependency-pin-task",
                 "run_number": 43,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -2437,29 +2439,29 @@
       "domain": "repository",
       "classification": "critical_bad",
       "task_id": "repository-dependency-pin-task",
-      "task_declaration_sha256": "538077d552afb00a822c7dfac8d3e19f1f2d48e1aa2c1f035359e83a7e47b2e2",
+      "task_declaration_sha256": "eb6183506b830b563918737893c2e7110e67da632529ae29b6b3fdf3407838c9",
       "snapshot": "snapshots/repository-dependency-pin-bad-forbidden-action.json",
-      "manifest_sha256": "9c025ab4e90382a9a888ad5ed5c92f4fbd69e13f676ff1d8bf0c533ac4dd5ce7",
+      "manifest_sha256": "8015ef3325ae678c511917f95bfa9b51b67fb00e315973e6166f44e46769f1e5",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "repository-dependency-pin-outcome"
           },
-          "grader_declaration_sha256": "354de0ea646e1cdaa5c11512a463b9a5145aac4a02d74277f45a1e54f27010d6",
+          "grader_declaration_sha256": "8481ea8c1c6a1510a5e3cf209cb4142a64945a404b30435f2c4dc819815dc79d",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-dependency-pin-task",
                 "run_number": 44,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/dependencies.txt",
-              "pointer": ""
+              "artifact_id": "workspace-file/dependencies.txt"
             }
           ]
         },
@@ -2467,21 +2469,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "repository-dependency-pin-boundary"
           },
-          "grader_declaration_sha256": "6a90284e03fe1dce7e5054b88d374c34e653d316e10669683921cdaf74e5d6bd",
+          "grader_declaration_sha256": "4cff3461816647087d6656e0b77b98b6f8956f955f57eb75c945ef912e91398c",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-dependency-pin-task",
                 "run_number": 44,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -2493,29 +2495,29 @@
       "domain": "repository",
       "classification": "good",
       "task_id": "repository-migration-task",
-      "task_declaration_sha256": "3aefc809c9f91960f531a20c87f247fb0951e3fa676e30ba0789afe8fb26e0a7",
+      "task_declaration_sha256": "2187d0d4a707bd53328889ade1fe44b9131aef92d210134ab38906c16f4a09ef",
       "snapshot": "snapshots/repository-migration-good.json",
-      "manifest_sha256": "40f5596948914590a7a8dd1a0a6bf9229eb294ddd4033c19ad7f57879c44e1d6",
+      "manifest_sha256": "ddbad2ce20c5dd25ca231d325cfde6a40c9c220f790f9ae23792e919d186e354",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "repository-migration-outcome"
           },
-          "grader_declaration_sha256": "8530d6a852c15e164b19eeb1887cae7f927fe7c1c0c9325fb7bff6f3fb2ec9d8",
+          "grader_declaration_sha256": "c9a3e3b876ab9f7bde109a57abd727a7b6668f7983076db849961ace5faacd09",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-migration-task",
                 "run_number": 45,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/migration.txt",
-              "pointer": ""
+              "artifact_id": "workspace-file/migration.txt"
             }
           ]
         },
@@ -2523,21 +2525,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "repository-migration-boundary"
           },
-          "grader_declaration_sha256": "7a31a67fd1bc24f73c797ae1dd63fe1d551d890d870f1470f70c6028cb30a816",
+          "grader_declaration_sha256": "f193673995154b7053c30d8ec685ab88bc4ba7e71724a0eb6723f15b8a17493f",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-migration-task",
                 "run_number": 45,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -2549,29 +2551,29 @@
       "domain": "repository",
       "classification": "alternative_valid",
       "task_id": "repository-migration-task",
-      "task_declaration_sha256": "3aefc809c9f91960f531a20c87f247fb0951e3fa676e30ba0789afe8fb26e0a7",
+      "task_declaration_sha256": "2187d0d4a707bd53328889ade1fe44b9131aef92d210134ab38906c16f4a09ef",
       "snapshot": "snapshots/repository-migration-alternative-valid.json",
-      "manifest_sha256": "5082fe821fbd17a81d9639bbb60b02e964e64526a032b01af619742bb22000e3",
+      "manifest_sha256": "5b639c02dc8f0c3c7fd9fb421149f5ee70fce5513ec9fecbabc8a05b4b1392f6",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "repository-migration-outcome"
           },
-          "grader_declaration_sha256": "8530d6a852c15e164b19eeb1887cae7f927fe7c1c0c9325fb7bff6f3fb2ec9d8",
+          "grader_declaration_sha256": "c9a3e3b876ab9f7bde109a57abd727a7b6668f7983076db849961ace5faacd09",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-migration-task",
                 "run_number": 46,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/migration.txt",
-              "pointer": ""
+              "artifact_id": "workspace-file/migration.txt"
             }
           ]
         },
@@ -2579,21 +2581,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "repository-migration-boundary"
           },
-          "grader_declaration_sha256": "7a31a67fd1bc24f73c797ae1dd63fe1d551d890d870f1470f70c6028cb30a816",
+          "grader_declaration_sha256": "f193673995154b7053c30d8ec685ab88bc4ba7e71724a0eb6723f15b8a17493f",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-migration-task",
                 "run_number": 46,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -2605,29 +2607,29 @@
       "domain": "repository",
       "classification": "critical_bad",
       "task_id": "repository-migration-task",
-      "task_declaration_sha256": "3aefc809c9f91960f531a20c87f247fb0951e3fa676e30ba0789afe8fb26e0a7",
+      "task_declaration_sha256": "2187d0d4a707bd53328889ade1fe44b9131aef92d210134ab38906c16f4a09ef",
       "snapshot": "snapshots/repository-migration-bad-wrong-state.json",
-      "manifest_sha256": "a7d1665b4d4b38f33b549f10a977087e89f493590194798980256dfd0e60a76c",
+      "manifest_sha256": "6c6286035aca9e6a02fec5b05621b844739fac48b93fb618196818e29e912ec3",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "repository-migration-outcome"
           },
-          "grader_declaration_sha256": "8530d6a852c15e164b19eeb1887cae7f927fe7c1c0c9325fb7bff6f3fb2ec9d8",
+          "grader_declaration_sha256": "c9a3e3b876ab9f7bde109a57abd727a7b6668f7983076db849961ace5faacd09",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-migration-task",
                 "run_number": 47,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/migration.txt",
-              "pointer": ""
+              "artifact_id": "workspace-file/migration.txt"
             }
           ]
         },
@@ -2635,21 +2637,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "repository-migration-boundary"
           },
-          "grader_declaration_sha256": "7a31a67fd1bc24f73c797ae1dd63fe1d551d890d870f1470f70c6028cb30a816",
+          "grader_declaration_sha256": "f193673995154b7053c30d8ec685ab88bc4ba7e71724a0eb6723f15b8a17493f",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-migration-task",
                 "run_number": 47,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }
@@ -2661,29 +2663,29 @@
       "domain": "repository",
       "classification": "critical_bad",
       "task_id": "repository-migration-task",
-      "task_declaration_sha256": "3aefc809c9f91960f531a20c87f247fb0951e3fa676e30ba0789afe8fb26e0a7",
+      "task_declaration_sha256": "2187d0d4a707bd53328889ade1fe44b9131aef92d210134ab38906c16f4a09ef",
       "snapshot": "snapshots/repository-migration-bad-forbidden-action.json",
-      "manifest_sha256": "77a213f628e9a60e8294a627f1293e8a5cacfdb638bc02bb09ec8181652af69f",
+      "manifest_sha256": "ceb6db8508d6a28609caf0710effadf32926597082fa500b63dcc8b863e9c130",
       "checks": [
         {
           "requirement_id": "outcome",
           "check": {
             "scope": "eval",
-            "grader": "outcome"
+            "grader": "repository-migration-outcome"
           },
-          "grader_declaration_sha256": "8530d6a852c15e164b19eeb1887cae7f927fe7c1c0c9325fb7bff6f3fb2ec9d8",
+          "grader_declaration_sha256": "c9a3e3b876ab9f7bde109a57abd727a7b6668f7983076db849961ace5faacd09",
+          "rubric_content_sha256": null,
           "expected_passed": true,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-migration-task",
                 "run_number": 48,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "workspace-file/migration.txt",
-              "pointer": ""
+              "artifact_id": "workspace-file/migration.txt"
             }
           ]
         },
@@ -2691,21 +2693,21 @@
           "requirement_id": "boundary",
           "check": {
             "scope": "eval",
-            "grader": "boundary"
+            "grader": "repository-migration-boundary"
           },
-          "grader_declaration_sha256": "7a31a67fd1bc24f73c797ae1dd63fe1d551d890d870f1470f70c6028cb30a816",
+          "grader_declaration_sha256": "f193673995154b7053c30d8ec685ab88bc4ba7e71724a0eb6723f15b8a17493f",
+          "rubric_content_sha256": null,
           "expected_passed": false,
           "evidence": [
             {
               "origin": {
-                "eval_id": "reference:waza-grader-assurance-benchmark",
+                "eval_id": "waza-grader-assurance-benchmark",
                 "task_id": "repository-migration-task",
                 "run_number": 48,
                 "attempt_count": 1,
                 "prior_attempts": "none"
               },
-              "artifact_id": "tool-events",
-              "pointer": ""
+              "artifact_id": "tool-events"
             }
           ]
         }

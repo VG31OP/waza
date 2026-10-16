@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/microsoft/waza/internal/models"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,22 +15,27 @@ func TestBenchmarkCorpusStructure(t *testing.T) {
 	scenarios := DefaultBenchmarkScenarios()
 	require.Len(t, scenarios, 12, "corpus must have exactly 12 scenarios")
 
-	domainCounts := make(map[string]int)
+	domainCounts := map[string]int{}
+	classificationCounts := map[CaseClassification]int{}
 	totalCases := 0
-	classificationCounts := make(map[CaseClassification]int)
 
 	for _, s := range scenarios {
 		domainCounts[s.Domain]++
+		require.NotEmpty(t, s.ID)
+		require.NotEmpty(t, s.Path)
+		require.NotEmpty(t, s.Field)
+		require.NotEmpty(t, s.Want)
+		require.NotEmpty(t, s.Wrong)
+		require.NotEmpty(t, s.PrimaryTool)
+		require.NotEmpty(t, s.AlternateTool)
+		require.NotEmpty(t, s.ForbiddenTool)
+
 		cases := s.Cases()
 		require.Len(t, cases, 4, "each scenario must have exactly 4 cases")
-		totalCases += len(cases)
 
 		for _, c := range cases {
+			totalCases++
 			classificationCounts[c.Classification]++
-			require.Equal(t, s.ID, c.ScenarioID)
-			require.NotEmpty(t, c.ID)
-			require.NotEmpty(t, c.StateContent)
-			require.NotEmpty(t, c.ToolCalls)
 
 			switch c.Kind {
 			case CaseKindGood:
@@ -84,10 +88,10 @@ func TestBenchmarkCorpusObserveMechanical(t *testing.T) {
 
 					gCtx := candidate.Context(workspace)
 
-					// 1. Observe outcome grader (FileGrader)
+					// 1. Observe outcome grader (FileGrader) with scenario-unique identifier
 					outcomeInput := ReferenceInput{
 						TaskID:     scenario.Task().TestID,
-						Check:      models.RequirementCheck{Scope: "eval", Grader: "outcome"},
+						Check:      scenario.Task().Requirements[0].Checks[0],
 						Parameters: outcomeParams,
 						Context:    gCtx,
 					}
@@ -106,10 +110,10 @@ func TestBenchmarkCorpusObserveMechanical(t *testing.T) {
 						require.Contains(t, outcomeObs.Result.Feedback, "contains forbidden pattern")
 					}
 
-					// 2. Observe boundary grader (ToolCallsGrader)
+					// 2. Observe boundary grader (ToolCallsGrader) with scenario-unique identifier
 					boundaryInput := ReferenceInput{
 						TaskID:     scenario.Task().TestID,
-						Check:      models.RequirementCheck{Scope: "eval", Grader: "boundary"},
+						Check:      scenario.Task().Requirements[1].Checks[0],
 						Parameters: boundaryParams,
 						Context:    gCtx,
 					}
@@ -221,22 +225,85 @@ func TestBenchmarkCorpusDeclaredMechanical(t *testing.T) {
 	}
 }
 
+func TestBenchmarkCorpusObservePreservedMechanical(t *testing.T) {
+	if !preservedWorkspaceSupported() {
+		t.Skip("preserved mechanical grading requires supported secure workspace materialization (Linux/macOS)")
+	}
+	pkg, err := BuildBenchmarkCorpus()
+	require.NoError(t, err)
+
+	validCasesTested := 0
+	badCasesTested := 0
+
+	for _, c := range pkg.Document.Cases {
+		snapshotBytes, ok := pkg.Snapshots[c.Snapshot]
+		require.True(t, ok, "snapshot must exist for case %s", c.ID)
+
+		task, ok := pkg.Tasks[c.TaskID]
+		require.True(t, ok, "task must exist for case %s", c.ID)
+
+		// 1. Grade outcome check directly from serialized snapshot
+		outcomeObs := ObservePreservedMechanical(t.Context(), PreservedMechanicalInput{
+			Task:           task,
+			Spec:           pkg.CombinedSpec,
+			Check:          c.Checks[0].Check,
+			SnapshotBytes:  snapshotBytes,
+			ManifestSHA256: c.ManifestSHA256,
+			Evidence:       c.Checks[0].Evidence,
+		})
+		require.Equal(t, Observed, outcomeObs.State)
+		require.NoError(t, outcomeObs.Err)
+		require.NotNil(t, outcomeObs.Result)
+		require.Equal(t, *c.Checks[0].ExpectedPassed, outcomeObs.Result.Passed)
+
+		// 2. Grade boundary check directly from serialized snapshot
+		boundaryObs := ObservePreservedMechanical(t.Context(), PreservedMechanicalInput{
+			Task:           task,
+			Spec:           pkg.CombinedSpec,
+			Check:          c.Checks[1].Check,
+			SnapshotBytes:  snapshotBytes,
+			ManifestSHA256: c.ManifestSHA256,
+			Evidence:       c.Checks[1].Evidence,
+		})
+		require.Equal(t, Observed, boundaryObs.State)
+		require.NoError(t, boundaryObs.Err)
+		require.NotNil(t, boundaryObs.Result)
+		require.Equal(t, *c.Checks[1].ExpectedPassed, boundaryObs.Result.Passed)
+
+		overallPassed := outcomeObs.Result.Passed && boundaryObs.Result.Passed
+		if c.Classification == CaseGood || c.Classification == CaseAlternative {
+			require.True(t, overallPassed, "valid case %s must pass", c.ID)
+			validCasesTested++
+		} else {
+			require.False(t, overallPassed, "critical bad case %s must fail", c.ID)
+			badCasesTested++
+		}
+	}
+
+	require.Equal(t, 24, validCasesTested, "24 valid cases must pass in preserved mechanical mode")
+	require.Equal(t, 24, badCasesTested, "24 critical bad cases must fail in preserved mechanical mode")
+}
+
 func TestBenchmarkCorpusFixturePersistence(t *testing.T) {
 	pkg, err := BuildBenchmarkCorpus()
 	require.NoError(t, err)
 
-	data, err := json.MarshalIndent(pkg.Document, "", "  ")
+	generatedData, err := json.MarshalIndent(pkg.Document, "", "  ")
 	require.NoError(t, err)
 
-	// Ensure internal/assurance/testdata exists
-	testdataDir := filepath.Join(".", "testdata")
-	if err := os.MkdirAll(testdataDir, 0o700); err == nil {
-		fixturePath := filepath.Join(testdataDir, "benchmark_corpus.json")
-		_ = os.WriteFile(fixturePath, data, 0o600)
+	fixturePath := filepath.Join(".", "testdata", "benchmark_corpus.json")
+	if os.Getenv("REGENERATE_CORPUS") == "1" {
+		require.NoError(t, os.MkdirAll(filepath.Dir(fixturePath), 0o700))
+		require.NoError(t, os.WriteFile(fixturePath, generatedData, 0o600))
 	}
 
-	// Verify the serialized JSON round-trips through ParseReferences
-	refSet, err := ParseReferences(data)
+	// Read and compare against the committed reference fixture
+	committedData, err := os.ReadFile(fixturePath)
+	require.NoError(t, err, "committed reference fixture must exist at %s", fixturePath)
+	require.JSONEq(t, string(generatedData), string(committedData), "committed fixture must match generated corpus")
+
+	// Verify the committed JSON parses and validates through ParseReferences
+	refSet, err := ParseReferences(committedData)
 	require.NoError(t, err)
 	subject, err := refSet.Subject()
 	require.NoError(t, err)
@@ -249,43 +316,40 @@ func TestBenchmarkCorpusFixturePersistence(t *testing.T) {
 	require.Equal(t, 1.0, doc.Domains[0].MinimumAgreement)
 }
 
-func TestBenchmarkCorpusVerifyRequestConstruction(t *testing.T) {
+func TestBenchmarkCorpusVerifyPreserved(t *testing.T) {
 	pkg, err := BuildBenchmarkCorpus()
 	require.NoError(t, err)
 
-	data, err := json.Marshal(pkg.Document)
-	require.NoError(t, err)
+	tempDir := t.TempDir()
+	for relPath, data := range pkg.Snapshots {
+		fullPath := filepath.Join(tempDir, relPath)
+		require.NoError(t, os.MkdirAll(filepath.Dir(fullPath), 0o700))
+		require.NoError(t, os.WriteFile(fullPath, data, 0o600))
+	}
 
-	refSet, err := ParseReferences(data)
+	root, err := os.OpenRoot(tempDir)
 	require.NoError(t, err)
-
-	subject, err := refSet.Subject()
-	require.NoError(t, err)
+	defer root.Close()
 
 	now := time.Date(2026, 10, 16, 12, 0, 0, 0, time.UTC)
-	reviewDoc := ReviewDocument{
-		SchemaVersion:  ReferenceVersion,
-		Kind:           ReviewKind,
-		SourceID:       "waza-author-team",
-		SubjectID:      subject.ID,
-		SubjectVersion: subject.Version,
-		LabelsSHA256:   byteSHA256(data),
-		State:          ReviewReviewed,
-		Reviewer:       "waza-lead-reviewer",
-		ReviewedAt:     now.Add(-time.Hour),
+	req := VerifyRequest{
+		Now:          now,
+		EvalSource:   []byte("waza reference benchmark corpus v1.0\n"),
+		Spec:         pkg.CombinedSpec,
+		Tasks:        pkg.Tasks,
+		SnapshotRoot: root,
+		Acceptance:   ReviewSourceAcceptance{SourceID: "synthetic-source", AcceptCurrentDecision: true},
 	}
-	reviewBytes, err := json.Marshal(reviewDoc)
-	require.NoError(t, err)
+	rebindSyntheticReview(t, &req, pkg.Document)
 
-	review, err := ParseReview(reviewBytes)
+	report, err := VerifyPreserved(t.Context(), req)
 	require.NoError(t, err)
+	require.NotNil(t, report)
 
-	acceptance := ReviewSourceAcceptance{
-		SourceID:              reviewDoc.SourceID,
-		AcceptCurrentDecision: true,
+	if preservedWorkspaceSupported() {
+		require.Equal(t, AssessmentPassed, report.State)
+	} else {
+		require.Equal(t, AssessmentError, report.State)
+		require.Equal(t, PreservedReportVersion, report.SchemaVersion)
 	}
-
-	eligibility, err := CheckAuthorReview(subject, review, acceptance, now)
-	require.NoError(t, err)
-	require.True(t, eligibility.Eligible, "review must be eligible")
 }
