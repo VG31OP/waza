@@ -6,6 +6,15 @@ This repository contains `waza`, a CLI tool for evaluating Agent Skills. **Go is
 
 When making changes, follow these guidelines to maintain consistency and quality.
 
+## Squad Team
+
+See [Meet the Squad](meet-the-squad.md) for current owners, the pinned Squad
+tooling, and upgrade/verification procedures. `.squad/team.md` and
+`.squad/routing.md` define the active team; `.squad/governance.md` defines bounded
+collaboration and independent review. Persisted GPT-first role assignments live
+in `.squad/config.json`, with code-review and fallback rules in
+`.squad/model-policy.md`. Historical model directives are superseded.
+
 ## Project Tracking
 
 **Keep issues and tracking up to date:**

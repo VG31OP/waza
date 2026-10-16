@@ -8,7 +8,9 @@
 - **Stack:** Go (primary), TypeScript/React 19, Tailwind CSS v4, Vite, Playwright
 - **Description:** waza evaluates how well AI agents can perform complex coding tasks
 - **Repository:** microsoft/waza
-- **Universe:** The Usual Suspects
+- **Universe:** Ocean's Eleven (existing names preserved; metadata corrected 2026-10-15)
+- **Current team policy:** `.squad/governance.md`
+- **Current model policy:** `.squad/model-policy.md`; assignments persist in `.squad/config.json`
 
 ## Coordinator
 
@@ -18,16 +20,29 @@
 
 ## Members
 
-| Name | Role | Charter | Status |
-|------|------|---------|--------|
-| Rusty | Lead / Architect | `.squad/agents/rusty/charter.md` | ✅ Active |
-| Linus | Backend Developer | `.squad/agents/linus/charter.md` | ✅ Active |
-| Basher | Tester / QA | `.squad/agents/basher/charter.md` | ✅ Active |
-| Livingston | Documentation Specialist | `.squad/agents/livingston/charter.md` | ✅ Active |
-| Saul | Documentation Lead | `.squad/agents/saul/charter.md` | ✅ Active |
-| Turk | Go Performance Specialist | `.squad/agents/turk/charter.md` | ✅ Active |
-| Scribe | Session Logger | `.squad/agents/scribe/charter.md` | 📋 Silent |
-| Ralph | Work Monitor | — | 🔄 Monitor |
+| Name | Role | Charter | Preferred Model | Status |
+|------|------|---------|-----------------|--------|
+| Rusty | Lead / Architect | `.squad/agents/rusty/charter.md` | `gpt-5.6-terra` | ✅ Active |
+| Linus | Go Backend & Evaluation Runtime | `.squad/agents/linus/charter.md` | `gpt-6.1-sol` | ✅ Active |
+| Basher | Test & Evaluation Quality | `.squad/agents/basher/charter.md` | `gpt-6.1-sol` | ✅ Active |
+| Livingston | Technical Documentation & Examples | `.squad/agents/livingston/charter.md` | `gpt-6-luna` | ✅ Active |
+| Saul | Documentation Lead / Information Architecture | `.squad/agents/saul/charter.md` | `gpt-6-luna` | ✅ Active |
+| Turk | Go Performance & Reliability | `.squad/agents/turk/charter.md` | `gpt-5.6-terra` | ✅ Active |
+| Yen | Web Design & Frontend | `.squad/agents/yen/charter.md` | `gpt-6.1-sol` | ✅ Active |
+| Danny | Developer Relations & Socialization | `.squad/agents/danny/charter.md` | `gpt-6-luna` | ✅ Active |
+| Virgil | Release & Developer Infrastructure | `.squad/agents/virgil/charter.md` | `gpt-6.1-sol` | ✅ Active |
+
+## Built-in Support
+
+Support identities are not specialist issue-routing destinations. Activate them
+only for bounded work under `.squad/governance.md`.
+
+| Name | Role | Charter | Preferred Model |
+|------|------|---------|-----------------|
+| Scribe | Session Logger | `.squad/agents/scribe/charter.md` | `gpt-6-luna` |
+| Ralph | Work Monitor | `.squad/agents/ralph/charter.md` | `gpt-6-luna` |
+| Rai | Responsible AI Reviewer | `.squad/agents/rai/charter.md` | `gpt-5.6-terra` |
+| Fact Checker | Evidence & Claim Verification | `.squad/agents/fact-checker/charter.md` | `gpt-5.6-terra` |
 
 ## Human Members
 
@@ -74,5 +89,5 @@
 
 See `.squad/decisions.md` for team decisions. Notable:
 
-- **Model selection (2026-02-18):** Coding in Claude Opus 4.6 (premium), reviews in GPT-5.3-Codex, design in Gemini Pro 3
+- **Team and models (2026-10-15):** GPT-first assignments, independent Terra code reviews, dedicated frontend, DevRel, and release owners. Supersedes earlier model assignments, not historical project decisions.
 - **Web UI styling (2026-02-18):** Dashboard colors close to DevEx Token Efficiency Benchmarks, no fancy gradients
