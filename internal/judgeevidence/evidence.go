@@ -358,7 +358,14 @@ func projectEvents(events []copilot.SessionEvent) ([]models.JudgeEvidenceMessage
 				Turn: turn, Sequence: len(tools) + 1, Args: start.Arguments})
 		case copilot.SessionEventTypeToolExecutionComplete:
 			result, ok := copilotevents.ToolComplete(event)
-			if !ok || result.Result == nil {
+			if !ok {
+				return nil, nil, errors.New("missing_tool_result")
+			}
+			var failure string
+			if !result.Success && result.Error != nil {
+				failure = result.Error.Message
+			}
+			if result.Result == nil && failure == "" {
 				return nil, nil, errors.New("missing_tool_result")
 			}
 			index, found := byID[result.ToolCallID]
@@ -367,6 +374,7 @@ func projectEvents(events []copilot.SessionEvent) ([]models.JudgeEvidenceMessage
 			}
 			completed[result.ToolCallID] = true
 			tools[index].Result, tools[index].Success = result.Result, result.Success
+			tools[index].Error = failure
 		}
 	}
 	if !sawUser || !sawAssistant {
@@ -530,7 +538,8 @@ func Verify(bundle *models.JudgeEvidence, origin models.EvidenceOrigin) error {
 	}
 	calls := map[string]bool{}
 	for i, tool := range *bundle.ToolEvents.Items {
-		if tool.Result == nil || tool.ToolCallID == "" || calls[tool.ToolCallID] || tool.ToolName == "" ||
+		if tool.Result == nil && (tool.Success || tool.Error == "") ||
+			tool.ToolCallID == "" || calls[tool.ToolCallID] || tool.ToolName == "" ||
 			tool.Sequence != i+1 || tool.Turn < 1 || tool.Turn > users {
 			return errors.New("judge evidence: missing_tool_result")
 		}

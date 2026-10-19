@@ -25,7 +25,7 @@ func TestArtifactVersionSeparation(t *testing.T) {
 		{"legacy-forward-minor", "skill: reader\nschemaVersion: \"1.5\"\n", "1.5", ""},
 		{"scenario", "scenario: inventory\nschemaVersion: \"2.0\"\n", "2.0", ""},
 		{"scenario-with-result-version", "scenario: inventory\nschemaVersion: \"1.5\"\n", "", "scenario requires"},
-		{"scenario-with-current-result-version", "scenario: inventory\nschemaVersion: \"1.6\"\n", "", "scenario requires"},
+		{"scenario-with-current-result-version", "scenario: inventory\nschemaVersion: \"1.7\"\n", "", "scenario requires"},
 		{"scenario-without-version", "scenario: inventory\n", "", "scenario requires"},
 		{"scenario-future-minor", "scenario: inventory\nschemaVersion: \"2.1\"\n", "", "scenario requires"},
 		{"legacy-with-scenario-version", "skill: reader\nschemaVersion: \"2.0\"\n", "", "schema major"},
@@ -70,7 +70,7 @@ func TestArtifactVersionSeparation(t *testing.T) {
 }
 
 func TestHistoricalResultVersionsSurviveWriterVersionBump(t *testing.T) {
-	for _, version := range []string{"", "1.0", "1.1", "1.4", "1.5", "1.6", "1.99"} {
+	for _, version := range []string{"", "1.0", "1.1", "1.4", "1.5", "1.6", "1.7", "1.99"} {
 		t.Run("version="+version, func(t *testing.T) {
 			outcome, err := ParseEvaluationOutcome([]byte(minimalOutcomeJSON(version)), "historical.json")
 			require.NoError(t, err)
@@ -114,6 +114,7 @@ func TestEvidenceResultFieldsUseCurrentWriterVersion(t *testing.T) {
 					Runtime:   EvidenceRuntime{ExecutionMode: "unknown", NativeSkillControl: "unknown"},
 					Artifacts: []EvidenceArtifact{},
 				}
+
 				run.RequirementExplanations = []RequirementExplanation{{
 					TaskID: "task", RequirementID: "requirement", Checks: []CheckExplanation{},
 				}}
@@ -140,4 +141,33 @@ func TestEvidenceResultFieldsUseCurrentWriterVersion(t *testing.T) {
 			require.Equal(t, run.RequirementExplanations, restored.TestOutcomes[0].Runs[0].RequirementExplanations)
 		})
 	}
+}
+
+func TestDependencyModesRoundTripInCurrentResultVersion(t *testing.T) {
+	outcome := EvaluationOutcome{RunID: "dependency-modes", TestOutcomes: []TestOutcome{{
+		TestID: "task",
+		Runs: []RunResult{{RunNumber: 1, DependencyModes: []DependencyMode{
+			{Kind: "mcp", Name: "inventory", Mode: "mocked"},
+			{Kind: "cli", Name: "az", Mode: "mocked"},
+		}}},
+	}}}
+	data, err := json.Marshal(outcome)
+	require.NoError(t, err)
+	var wire struct {
+		SchemaVersion string `json:"schemaVersion"`
+		Tasks         []struct {
+			Runs []struct {
+				DependencyModes []DependencyMode `json:"dependency_modes"`
+			} `json:"runs"`
+		} `json:"tasks"`
+	}
+	require.NoError(t, json.Unmarshal(data, &wire))
+	require.Equal(t, "1.7", wire.SchemaVersion)
+	require.Equal(t, []DependencyMode{
+		{Kind: "mcp", Name: "inventory", Mode: "mocked"},
+		{Kind: "cli", Name: "az", Mode: "mocked"},
+	}, wire.Tasks[0].Runs[0].DependencyModes)
+	restored, err := ParseEvaluationOutcome(data, "dependency-modes.json")
+	require.NoError(t, err)
+	require.Equal(t, wire.Tasks[0].Runs[0].DependencyModes, restored.TestOutcomes[0].Runs[0].DependencyModes)
 }

@@ -83,6 +83,21 @@ unchanged; it does not downgrade scenario discovery semantics to `1.x`.
 
 ## Changelog
 
+### Recovery evidence in results 1.7 (#662)
+
+- Finite MCP/CLI sequences require exact eval `schemaVersion: "2.0"`, including
+  task overrides and selected external MCP fixtures. Offline validation and
+  execution apply the enclosing eval version; task YAML has no version selector.
+- A started, interrupted CLI sequence attempt may omit `exit_code` when no
+  completed result was captured. An explicit numeric zero still means a
+  completed successful mock result. Existing numeric exit codes remain readable.
+- Inline `code` graders receive `tool_events` and `command_invocations` during
+  execution and regrading. Recovery examples check actual dependency operations,
+  observed responses, and dependency-scoped retry counts as well as report files.
+- Independent evidence judges retain an observed SDK tool failure's `error`
+  even when no result payload was emitted. Missing results without an observed
+  failure remain incomplete evidence; no successful response is synthesized.
+
 ### Portable evidence manifest 1.0 / snapshot 1.1 (#663)
 
 - Added optional per-run `evidence` and scoped `requirement_explanations` to
@@ -145,12 +160,17 @@ promised stable across runs.
 ### 2.0 (scenario evals only)
 
 - Added a nonempty `scenario` workflow identity with optional existing `skill` context; scenario scaffolds explicitly select exact eval `2.0`, while legacy reader defaults remain `1.4` and task formats are unchanged.
+- Finite MCP/CLI response `sequence` fields are admitted only for scenario evals. Each matching call consumes one bounded step; sequence exhaustion and unmatched calls fail closed. This does not add automatic retries, transport cancellation or host isolation.
 - Target-free scenarios without effective explicit skill directories disable native SDK skill discovery; disabling the last eval directory preserves that isolation. Explicit task directories still opt in, empty task directories disable discovery, and `--no-skills` overrides opt-ins.
 - Scenario evals reject unknown eval/config fields and future minor versions. Old executables reject major `2` before execution.
 - Scenario result caching is bypassed with a notice until external dependencies can be completely fingerprinted.
 
 ### 1.7 (new results only)
 
+- Recovery metadata and independent-judging fields are separate optional
+  additions to the same-major result contract; readers do not infer either
+  feature from the version alone, and historical artifacts keep their version.
+- Adds optional `tasks[].runs[].dependency_modes`, listing configured dependency kind/name and `live` or `mocked` mode for each run. This reports configuration only; it does not prove the dependency was invoked or verify a real component. CLI response attempts remain in `runs[].command_invocations`, and historical results preserve their original version and fields.
 - Adds optional final prompt-grader `evidence_context`, frozen
   `runs[].judge_evidence` bundle version `1.0`, typed `runs[].prompt_judging`
   observations, and separate current-invocation `regrade_usage.sessions`.

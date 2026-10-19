@@ -2,6 +2,8 @@ package models
 
 import (
 	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -207,6 +209,35 @@ type MCPMockResponse struct {
 	MatchRegex  map[string]string `yaml:"match_regex,omitempty" json:"match_regex,omitempty"`
 	Return      any               `yaml:"return,omitempty" json:"return,omitempty"`
 	Error       string            `yaml:"error,omitempty" json:"error,omitempty"`
+	Sequence    []MCPMockStep     `yaml:"sequence,omitempty" json:"sequence,omitempty"`
+}
+
+type MCPMockStep struct {
+	Return  any    `yaml:"return,omitempty" json:"return,omitempty"`
+	Error   string `yaml:"error,omitempty" json:"error,omitempty"`
+	DelayMS int64  `yaml:"delay_ms,omitempty" json:"delay_ms,omitempty"`
+}
+
+type mcpMockStepWire struct {
+	Return  *any   `yaml:"return,omitempty" json:"return,omitempty"`
+	Error   string `yaml:"error,omitempty" json:"error,omitempty"`
+	DelayMS int64  `yaml:"delay_ms,omitempty" json:"delay_ms,omitempty"`
+}
+
+func (s MCPMockStep) wire() mcpMockStepWire {
+	wire := mcpMockStepWire{Error: s.Error, DelayMS: s.DelayMS}
+	if s.Error == "" || s.Return != nil {
+		wire.Return = &s.Return
+	}
+	return wire
+}
+
+func (s MCPMockStep) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.wire())
+}
+
+func (s MCPMockStep) MarshalYAML() (any, error) {
+	return s.wire(), nil
 }
 
 // ShouldInjectSkillBody returns true unless the eval explicitly opts out of
@@ -526,14 +557,18 @@ func parseEvalSpec(data []byte, path string, offline bool, validate func(string,
 		return nil, err
 	}
 
+	var sourceErr error
 	if err := validateDeclaredFaults(data, version, false); err != nil {
-		return nil, fmt.Errorf("eval fault sources: %w", err)
+		sourceErr = fmt.Errorf("eval fault sources: %w", err)
 	}
 
 	if offline {
 		if err := guardOfflineModelSchemas(data, false, validate); err != nil {
-			return nil, fmt.Errorf("eval schema dependencies: %w", err)
+			sourceErr = errors.Join(sourceErr, fmt.Errorf("eval schema dependencies: %w", err))
 		}
+	}
+	if sourceErr != nil {
+		return nil, sourceErr
 	}
 
 	var spec EvalSpec

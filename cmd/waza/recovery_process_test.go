@@ -1,0 +1,357 @@
+package main
+
+import (
+	"bytes"
+	"context"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
+	"io"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
+	"strconv"
+	"strings"
+	"syscall"
+	"testing"
+	"time"
+
+	"github.com/microsoft/waza/internal/commandmock"
+	"github.com/microsoft/waza/internal/jsonrpc"
+	"github.com/microsoft/waza/internal/models"
+	"github.com/stretchr/testify/require"
+)
+
+func buildRecoveryCLI(t *testing.T) string {
+	t.Helper()
+	binary := filepath.Join(t.TempDir(), "waza")
+	if runtime.GOOS == "windows" {
+		binary += ".exe"
+	}
+	log, err := exec.CommandContext(t.Context(), "go", "build", "-o", binary, ".").CombinedOutput()
+	require.NoError(t, err, "%s", log)
+	return binary
+}
+
+func TestRecoveryCommandMockContextCancellation(t *testing.T) {
+	canceled, cancel := context.WithCancel(t.Context())
+	cancel()
+	expired, stop := context.WithDeadline(t.Context(), time.Now().Add(-time.Second))
+	defer stop()
+	for _, test := range []struct {
+		name string
+		ctx  context.Context
+		code int
+	}{
+		{"canceled", canceled, 130},
+		{"deadline", expired, 124},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			cmd := newRootCommand()
+			cmd.SetContext(test.ctx)
+			cmd.SetArgs([]string{"__command-mock", "--root", t.TempDir(), "--name", "unused"})
+			var diagnostic bytes.Buffer
+			cmd.SetErr(&diagnostic)
+			err := cmd.Execute()
+			var exit *ExitCodeError
+			require.ErrorAs(t, err, &exit)
+			require.Equal(t, test.code, exit.Code)
+			require.Nil(t, exit.Err, "main must not emit a second diagnostic")
+			require.Empty(t, diagnostic.String(), "Cobra must not write after cancellation")
+		})
+	}
+}
+
+func TestRecoveryCommandMockDelayedContextCancellation(t *testing.T) {
+	workspace := t.TempDir()
+	session, err := commandmock.NewSession(workspace, []models.CommandMockConfig{{
+		Name: "az", ExpectCalls: new(1), Responses: []models.CommandMockResponse{{
+			Args: []string{"account"}, Sequence: []models.CommandMockStep{{DelayMS: 300000, Stderr: "not delivered", ExitCode: 7}},
+		}},
+	}}, workspace)
+	require.NoError(t, err)
+	env, err := commandmock.RuntimeEnvironment()
+	require.NoError(t, err)
+	var root string
+	for _, item := range env {
+		if value, ok := strings.CutPrefix(item, "WAZA_COMMAND_MOCK_ROOT="); ok {
+			root = value
+		}
+	}
+	require.NotEmpty(t, root)
+	t.Chdir(workspace)
+	t.Setenv(commandmock.SessionEnvironmentVariable, session.ID())
+	ctx, cancel := context.WithTimeout(t.Context(), 100*time.Millisecond)
+	defer cancel()
+	cmd := newRootCommand()
+	cmd.SetContext(ctx)
+	cmd.SetArgs([]string{"__command-mock", "--root", root, "--name", "az", "--", "account"})
+	var diagnostic bytes.Buffer
+	cmd.SetErr(&diagnostic)
+	executed, err := cmd.ExecuteC()
+	var exit *ExitCodeError
+	require.ErrorAs(t, err, &exit)
+	require.Equal(t, 124, exit.Code)
+	require.Nil(t, exit.Err, "main must not emit a second diagnostic")
+	require.True(t, executed.SilenceErrors, "the delay cancellation cause must reach Cobra")
+	require.Empty(t, diagnostic.String(), "Cobra must not write after a delayed cancellation")
+	records, err := session.Close()
+	require.NoError(t, err)
+	require.Len(t, records, 1, "the deadline must occur after selecting the delayed step")
+	require.Equal(t, new(124), records[0].ExitCode)
+}
+
+func TestRecoveryMCPMockProcessStdinLifecycle(t *testing.T) {
+	binary := buildRecoveryCLI(t)
+	for _, test := range []struct {
+		name   string
+		signal os.Signal
+	}{
+		{"EOF", nil},
+		{"SIGTERM with open stdin", syscall.SIGTERM},
+		{"SIGINT with open stdin", os.Interrupt},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if test.signal != nil && runtime.GOOS == "windows" {
+				t.Skip("Windows cannot send these signals to an independent process")
+			}
+			input, send, err := os.Pipe()
+			require.NoError(t, err)
+			t.Cleanup(func() { require.NoError(t, input.Close()) })
+			sendClosed := false
+			t.Cleanup(func() {
+				if !sendClosed {
+					require.NoError(t, send.Close())
+				}
+			})
+			// A real inherited file descriptor exercises blocking os.Stdin,
+			// unlike the interruptible io.Pipe endpoints in serving tests.
+			config := base64.StdEncoding.EncodeToString([]byte(`{"name":"dependency"}`))
+			ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+			defer cancel()
+			child := exec.CommandContext(ctx, binary, "__mcp-mock", "--config-base64", config)
+			child.Stdin = input
+			child.Env = append(os.Environ(), "WAZA_NO_UPDATE_CHECK=1")
+			var stderr bytes.Buffer
+			child.Stderr = &stderr
+			output, err := child.StdoutPipe()
+			require.NoError(t, err)
+			require.NoError(t, child.Start())
+			waited := false
+			t.Cleanup(func() {
+				if !waited {
+					cancel()
+					require.Error(t, child.Wait())
+				}
+			})
+			_, err = io.WriteString(send, "{\"jsonrpc\":\"2.0\",\"method\":\"initialize\",\"id\":1}\n")
+			require.NoError(t, err)
+			var response jsonrpc.Response
+			require.NoError(t, json.NewDecoder(output).Decode(&response))
+			require.JSONEq(t, "1", string(response.ID))
+			require.Nil(t, response.Error)
+			require.NotNil(t, response.Result, "the actual subprocess must be serving before shutdown")
+			if test.signal == nil {
+				require.NoError(t, send.Close())
+				sendClosed = true
+			} else {
+				_, err = io.WriteString(send, `{"jsonrpc":"2.0",`)
+				require.NoError(t, err)
+				require.NoError(t, child.Process.Signal(test.signal))
+			}
+			err = child.Wait()
+			waited = true
+			require.NoError(t, ctx.Err(), "MCP shutdown required the safety timeout; stderr: %s", stderr.String())
+			if test.signal == nil {
+				require.NoError(t, err, "%s", stderr.String())
+				return
+			}
+			_, statErr := send.Stat()
+			require.NoError(t, statErr, "stdin must remain open until after the child exits")
+			var exit *exec.ExitError
+			require.ErrorAs(t, err, &exit, "%s", stderr.String())
+			status, ok := exit.Sys().(syscall.WaitStatus)
+			require.True(t, ok)
+			require.True(t, status.Signaled(), "termination must not fabricate a successful response")
+			require.Equal(t, test.signal, status.Signal())
+		})
+	}
+}
+
+func TestRecoveryCommandMockProcessInterruption(t *testing.T) {
+	binary := buildRecoveryCLI(t)
+	for _, abrupt := range []bool{false, true} {
+		name := "SIGTERM"
+		if abrupt {
+			name = "abrupt kill"
+		}
+		t.Run(name, func(t *testing.T) {
+			if !abrupt && runtime.GOOS == "windows" {
+				t.Skip("Windows does not support sending SIGTERM to an independent process")
+			}
+			workspace := t.TempDir()
+			session, err := commandmock.NewSession(workspace, []models.CommandMockConfig{{
+				Name: "az", ExpectCalls: new(2), Responses: []models.CommandMockResponse{{
+					Args: []string{"account", "show"},
+					Sequence: []models.CommandMockStep{
+						{DelayMS: 300000, ExitCode: 1, Stderr: "temporary failure"},
+						{Stdout: "recovered", ExitCode: 0},
+					},
+				}},
+			}}, workspace)
+			require.NoError(t, err)
+			closed := false
+			t.Cleanup(func() {
+				if !closed {
+					_, err := session.Close()
+					require.NoError(t, err)
+				}
+			})
+			env, err := commandmock.RuntimeEnvironment()
+			require.NoError(t, err)
+			root := ""
+			for _, item := range env {
+				if value, ok := strings.CutPrefix(item, "WAZA_COMMAND_MOCK_ROOT="); ok {
+					root = value
+				}
+			}
+
+			require.NotEmpty(t, root)
+			ctx, cancel := context.WithTimeout(t.Context(), 15*time.Second)
+			defer cancel()
+			command := func() *exec.Cmd {
+				child := exec.CommandContext(ctx, binary, "__command-mock", "--root", root, "--name", "az", "--", "account", "show")
+				child.Dir = workspace
+				child.Env = append(env, commandmock.SessionEnvironmentVariable+"="+session.ID(), "WAZA_NO_UPDATE_CHECK=1")
+				return child
+			}
+			child := command()
+			var stdout, stderr bytes.Buffer
+			child.Stdout, child.Stderr = &stdout, &stderr
+			require.NoError(t, child.Start())
+			waited := false
+			t.Cleanup(func() {
+				if !waited {
+					cancel()
+					_ = child.Wait()
+				}
+			})
+			marker := filepath.Join(root, "sessions", session.ID(), "sequences", "mock-0000-response-0000", "step-00000000")
+			require.Eventually(t, func() bool {
+				_, err := os.Stat(marker)
+				return err == nil && len(session.Invocations()) == 1
+			}, 5*time.Second, 10*time.Millisecond, "child never started and reserved the delayed step")
+			require.Nil(t, session.Invocations()[0].ExitCode)
+			if abrupt {
+				require.NoError(t, child.Process.Kill())
+			} else {
+				require.NoError(t, child.Process.Signal(syscall.SIGTERM))
+			}
+			err = child.Wait()
+			waited = true
+			var exit *exec.ExitError
+			require.True(t, errors.As(err, &exit), "%v; stderr: %s", err, stderr.String())
+			if !abrupt {
+				require.Equal(t, 130, exit.ExitCode(), "%s", stderr.String())
+			}
+			recovered, err := command().CombinedOutput()
+			require.NoError(t, err, "%s", recovered)
+			require.Equal(t, "recovered", string(recovered))
+			records, err := session.Close()
+			closed = true
+			require.NoError(t, err)
+			require.Len(t, records, 2)
+			require.Equal(t, []string{"account", "show"}, records[0].Args)
+			require.Equal(t, 0, records[0].ResponseIndex)
+			if abrupt {
+				require.Nil(t, records[0].ExitCode, "an uncatchable kill must not invent an exit result")
+			} else {
+				require.Equal(t, new(130), records[0].ExitCode)
+			}
+			require.Equal(t, new(0), records[1].ExitCode)
+		})
+	}
+}
+
+func TestRecoveryCommandMockPassThroughInterruption(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows does not support sending SIGTERM to an independent process")
+	}
+	binary := buildRecoveryCLI(t)
+	executable, err := os.Executable()
+	require.NoError(t, err)
+	workspace := t.TempDir()
+	session, err := commandmock.NewSession(workspace, []models.CommandMockConfig{{
+		Name: "az", Responses: []models.CommandMockResponse{{Args: []string{}, Stdout: "unused"}},
+	}}, workspace)
+	require.NoError(t, err)
+	defer func() {
+		_, err := session.Close()
+		require.NoError(t, err)
+	}()
+	env, err := commandmock.RuntimeEnvironment()
+	require.NoError(t, err)
+	root := ""
+	for _, item := range env {
+		if value, ok := strings.CutPrefix(item, "WAZA_COMMAND_MOCK_ROOT="); ok {
+			root = value
+		}
+	}
+	require.NotEmpty(t, root)
+	ready := filepath.Join(workspace, "host-started")
+	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+	defer cancel()
+	child := exec.CommandContext(ctx, binary, "__command-mock", "--root", root, "--name", filepath.Base(executable), "--", "-test.run=^TestRecoveryPassThroughHostProcess$")
+	child.Dir = workspace
+	child.Env = append(env, commandmock.SessionEnvironmentVariable+"="+session.ID(),
+		"PATH="+filepath.Dir(executable), "WAZA_TEST_RECOVERY_HOST="+ready, "WAZA_NO_UPDATE_CHECK=1")
+	child.WaitDelay = time.Second
+	var output bytes.Buffer
+	child.Stdout, child.Stderr = &output, &output
+	require.NoError(t, child.Start())
+	waited := false
+	t.Cleanup(func() {
+		if !waited {
+			cancel()
+			require.Error(t, child.Wait())
+		}
+	})
+	var pid int
+	require.Eventually(t, func() bool {
+		data, err := os.ReadFile(ready)
+		if err != nil {
+			return false
+		}
+		pid, err = strconv.Atoi(string(data))
+		return err == nil && pid > 0
+	}, 5*time.Second, 10*time.Millisecond, "pass-through host command never started")
+	host, err := os.FindProcess(pid)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		if host.Signal(syscall.Signal(0)) == nil {
+			require.NoError(t, host.Kill())
+		}
+		require.NoError(t, host.Release())
+	})
+	require.NoError(t, host.Signal(syscall.Signal(0)), "the real host command must be running before termination")
+	require.NoError(t, child.Process.Signal(syscall.SIGTERM))
+	err = child.Wait()
+	waited = true
+	require.NoError(t, ctx.Err(), "shim did not finish before the test safety deadline")
+	var exit *exec.ExitError
+	require.ErrorAs(t, err, &exit, "%s", output.String())
+	require.Equal(t, 130, exit.ExitCode(), "%s", output.String())
+	require.Error(t, host.Signal(syscall.Signal(0)), "pass-through host process survived cancellation")
+	require.Empty(t, session.Invocations(), "a host command must not fabricate a mock invocation")
+}
+
+func TestRecoveryPassThroughHostProcess(t *testing.T) {
+	ready := os.Getenv("WAZA_TEST_RECOVERY_HOST")
+	if ready == "" {
+		return
+	}
+	require.NoError(t, os.WriteFile(ready, []byte(strconv.Itoa(os.Getpid())), 0600))
+	time.Sleep(time.Hour)
+	os.Exit(0)
+}

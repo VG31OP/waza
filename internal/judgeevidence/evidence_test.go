@@ -120,6 +120,57 @@ func TestCaptureRequiredRedactionAndEncodedLimits(t *testing.T) {
 	require.NotContains(t, string(encoded), "SHORT_SENSITIVE_CANARY")
 }
 
+func TestCaptureObservedToolFailuresWithoutInventingResults(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		success bool
+		result  *copilot.ToolExecutionCompleteResult
+		failure *copilot.ToolExecutionCompleteError
+		valid   bool
+	}{
+		{"error only", false, nil, &copilot.ToolExecutionCompleteError{Message: "dependency unavailable"}, true},
+		{"error and result", false, &copilot.ToolExecutionCompleteResult{Content: "failed"}, &copilot.ToolExecutionCompleteError{Message: "dependency unavailable"}, true},
+		{"missing result and error", false, nil, nil, false},
+		{"empty error", false, nil, &copilot.ToolExecutionCompleteError{}, false},
+		{"successful error-only completion", true, nil, &copilot.ToolExecutionCompleteError{Message: "dependency unavailable"}, false},
+		{"redacted error", false, nil, &copilot.ToolExecutionCompleteError{Message: "Bearer " + strings.Repeat("s", 32)}, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			input := observedInput()
+			input.Events = append(input.Events,
+				copilot.SessionEvent{Data: &copilot.ToolExecutionStartData{ToolCallID: "call", ToolName: "request"}},
+				copilot.SessionEvent{Data: &copilot.ToolExecutionCompleteData{
+					ToolCallID: "call", Success: test.success, Result: test.result, Error: test.failure,
+				}},
+			)
+			bundle := Capture(input)
+			if !test.valid {
+				require.Error(t, Verify(bundle, input.Origin))
+				return
+			}
+			require.NoError(t, Verify(bundle, input.Origin))
+			require.Len(t, *bundle.ToolEvents.Items, 1)
+			event := (*bundle.ToolEvents.Items)[0]
+			require.False(t, event.Success)
+			require.Equal(t, test.failure.Message, event.Error)
+			if test.result == nil {
+				require.Nil(t, event.Result)
+			} else {
+				require.NotNil(t, event.Result)
+			}
+			data, err := json.Marshal(bundle)
+			require.NoError(t, err)
+			var restored models.JudgeEvidence
+			require.NoError(t, json.Unmarshal(data, &restored))
+			require.NoError(t, Verify(&restored, input.Origin))
+			delivery, err := Delivery(&restored, input.Origin, models.PromptEvidenceContext{})
+			require.NoError(t, err)
+			require.Equal(t, event.Error, (*delivery.ToolEvents.Items)[0].Error)
+			require.Equal(t, event.Result, (*delivery.ToolEvents.Items)[0].Result)
+		})
+	}
+}
+
 func TestFileCaptureBoundariesAndPerJudgeDetachedSelections(t *testing.T) {
 	if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
 		t.Skip("secure selected-file capture requires Linux/macOS")

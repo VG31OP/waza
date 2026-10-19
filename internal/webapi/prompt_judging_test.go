@@ -153,6 +153,37 @@ func TestPromptJudgingProducerToResultReaderToAPIMetadata(t *testing.T) {
 	require.JSONEq(t, string(expected), string(normalized))
 }
 
+func TestPromptJudgingAndRecoveryMetadataSurviveRegradeReaderAndAPI(t *testing.T) {
+	outcome := promptJudgingProducer(t)
+	run := &outcome.TestOutcomes[0].Runs[0]
+	run.DependencyModes = []models.DependencyMode{{Kind: "cli", Name: "az", Mode: "mocked"}}
+	run.CommandInvocations = []models.CommandInvocation{
+		{Command: "az", Args: []string{"account"}, ExitCode: nil},
+		{Command: "az", Args: []string{"account"}, ExitCode: new(0)},
+	}
+	regraded := orchestration.RegradeOutcome(outcome, outcome.TestOutcomes, "judge-model", "")
+	encoded, err := json.Marshal(regraded)
+	require.NoError(t, err)
+	parsed, err := models.ParseEvaluationOutcome(encoded, "combined-results.json")
+	require.NoError(t, err)
+	detail := outcomeToDetail(parsed)
+	require.Len(t, detail.Tasks, 1)
+	task := detail.Tasks[0]
+	require.Equal(t, run.DependencyModes, task.DependencyModes)
+	require.Equal(t, run.CommandInvocations, task.CommandInvocations)
+	require.Len(t, task.PromptJudgingRuns, 3)
+	require.Equal(t, "recorded", task.PromptJudgingRuns[0].Assessment)
+	require.Len(t, task.PromptJudgingRuns[0].Observations, 2)
+	metadata, err := json.Marshal(task)
+	require.NoError(t, err)
+	require.Contains(t, string(metadata), `"dependencyModes"`)
+	require.Contains(t, string(metadata), `"commandInvocations"`)
+	require.Contains(t, string(metadata), `"promptJudgingRuns"`)
+	require.Contains(t, string(metadata), `"exit_code":0`)
+	require.NotContains(t, string(metadata), "PRIVATE_FILE_BODY")
+	require.NotContains(t, string(metadata), "PRIVATE_ACTOR_OUTPUT")
+}
+
 func TestPromptJudgingAPIWithholdsTamperedCrossRunAndUnboundClaims(t *testing.T) {
 	for _, problem := range []string{"bundle", "origin", "delivery", "selection", "state", "inspection", "cached"} {
 		t.Run(problem, func(t *testing.T) {

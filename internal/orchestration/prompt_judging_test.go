@@ -61,6 +61,89 @@ func evidenceRunner(t *testing.T) (*EvalRunner, *copilotfake.Client) {
 	return runner, client
 }
 
+func TestRecoveryBenchmarkPreservesMCPAdmissionAndIndependentJudgeCapture(t *testing.T) {
+	if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
+		t.Skip("secure selected-file capture requires Linux/macOS")
+	}
+	for _, invalid := range []bool{false, true} {
+		t.Run(fmt.Sprintf("invalid=%t", invalid), func(t *testing.T) {
+			dir := t.TempDir()
+			require.NoError(t, os.Mkdir(filepath.Join(dir, "mocks"), 0700))
+			sequence := `[{"error":"temporary dependency error"},{"return":"ready"}]`
+			if invalid {
+				sequence = `[]`
+			}
+			require.NoError(t, os.WriteFile(filepath.Join(dir, "mocks", "request.json"), []byte(`{"responses":[{"sequence":`+sequence+`}]}`), 0600))
+			require.NoError(t, os.WriteFile(filepath.Join(dir, "task.yaml"), []byte("id: task\nname: Recovery report\ninputs: {prompt: Recover and write report.txt}\n"), 0600))
+			client := &copilotfake.Client{Send: func(session *copilot.SessionConfig, options copilot.MessageOptions) ([]copilot.SessionEvent, error) {
+				require.Contains(t, session.MCPServers, "dependency")
+				require.NoError(t, os.WriteFile(filepath.Join(session.WorkingDirectory, "report.txt"), []byte("RECOVERED_REPORT_CANARY"), 0600))
+				return []copilot.SessionEvent{
+					{Data: &copilot.UserMessageData{Content: options.Prompt}},
+					{Data: &copilot.ToolExecutionStartData{ToolCallID: "first", ToolName: "dependency-request"}},
+					{Data: &copilot.ToolExecutionCompleteData{ToolCallID: "first", Success: false, Error: &copilot.ToolExecutionCompleteError{Message: "temporary dependency error"}}},
+					{Data: &copilot.ToolExecutionStartData{ToolCallID: "second", ToolName: "dependency-request"}},
+					{Data: &copilot.ToolExecutionCompleteData{ToolCallID: "second", Success: true, Result: &copilot.ToolExecutionCompleteResult{Content: "ready"}}},
+					{Data: &copilot.AssistantMessageData{Content: "Recovered"}},
+				}, nil
+			}}
+			engine := client.Engine()
+			t.Cleanup(func() { require.NoError(t, engine.Shutdown(t.Context())) })
+			spec := &models.EvalSpec{
+				SchemaVersion: models.ScenarioSchemaVersion, Scenario: "recovery",
+				SpecIdentity: models.SpecIdentity{Name: "Recovery with independent judging"},
+				Config:       models.Config{EngineType: "copilot-sdk", ModelID: "actor-model", TimeoutSec: 30, TrialsPerTask: 1},
+				Tasks:        []string{"task.yaml"},
+				MCPMocks:     []models.MCPMockConfig{{Name: "dependency", Fixtures: "mocks"}},
+				Graders:      []models.GraderConfig{evidenceConfig("report", "report.txt")},
+			}
+			runner := NewEvalRunner(config.NewEvalConfig(spec, config.WithSpecDir(dir)), engine)
+			judgments := 0
+			runner.evidenceExecutor = scriptedEvidenceJudge(func(request *execution.ExecutionRequest) (*execution.ExecutionResponse, error) {
+				judgments++
+				require.Empty(t, request.SessionID)
+				require.Contains(t, request.Message, "RECOVERED_REPORT_CANARY")
+				require.Contains(t, request.Message, "temporary dependency error")
+				require.Contains(t, request.Message, "dependency-request")
+				_, err := request.Tools[0].Handler(copilot.ToolInvocation{ToolName: request.Tools[0].Name})
+				return &execution.ExecutionResponse{Success: true, SessionID: "independent-judge"}, err
+			})
+			outcome, err := runner.RunBenchmark(t.Context())
+			if invalid {
+				require.ErrorContains(t, err, "MCP mock admission")
+				require.Nil(t, outcome)
+				require.Zero(t, client.Creates.Load())
+				require.Zero(t, judgments)
+				return
+			}
+			require.NoError(t, err)
+			require.Len(t, outcome.TestOutcomes, 1)
+			require.Len(t, outcome.TestOutcomes[0].Runs, 1)
+			run := outcome.TestOutcomes[0].Runs[0]
+			require.Equal(t, models.StatusPassed, run.Status, run.ErrorMsg)
+			require.Equal(t, int64(1), client.Creates.Load())
+			require.Equal(t, 1, judgments)
+			require.Equal(t, []models.DependencyMode{{Kind: "mcp", Name: "dependency", Mode: "mocked"}}, run.DependencyModes)
+			require.Len(t, run.ToolEvents, 2)
+			require.False(t, run.ToolEvents[0].Success)
+			require.Equal(t, "temporary dependency error", run.ToolEvents[0].Error)
+			require.True(t, run.ToolEvents[1].Success)
+			require.NoError(t, judgeevidence.Verify(run.JudgeEvidence, run.JudgeEvidence.Origin))
+			require.Len(t, *run.JudgeEvidence.ToolEvents.Items, 2)
+			require.Nil(t, (*run.JudgeEvidence.ToolEvents.Items)[0].Result)
+			require.Equal(t, run.ToolEvents[0].Error, (*run.JudgeEvidence.ToolEvents.Items)[0].Error)
+			require.Len(t, run.PromptJudging, 1)
+			require.True(t, run.PromptJudging[0].SubmissionObserved)
+			data, err := json.Marshal(outcome)
+			require.NoError(t, err)
+			restored, err := models.ParseEvaluationOutcome(data, "combined-results.json")
+			require.NoError(t, err)
+			require.Equal(t, run.DependencyModes, restored.TestOutcomes[0].Runs[0].DependencyModes)
+			require.Equal(t, run.JudgeEvidence.SHA256, restored.TestOutcomes[0].Runs[0].JudgeEvidence.SHA256)
+		})
+	}
+}
+
 func TestEvidenceRunnerFreezesBeforeLegacyGraderAndFiltersEveryDelivery(t *testing.T) {
 	if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
 		t.Skip("secure selected-file capture requires Linux/macOS")

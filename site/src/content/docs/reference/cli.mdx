@@ -95,10 +95,9 @@ waza run [eval.yaml | skill-name | agent-name]
 
 ### Flags
 
-The private dependency-fault harness does not add a public `run` flag, automatic
-retry policy or finite-sequence runtime configuration. Its injected native
-dispatch tests do not certify SDK resume or platform stdio. See
-[Private Fault Harness](/waza/guides/private-fault-fixtures/).
+Finite MCP/CLI fault sequences are configured in scenario eval YAML, not through
+a `run` flag. They do not add an automatic retry policy or certify real CLI/MCP
+implementations. See [Dependency Recovery](/waza/guides/dependency-recovery/).
 
 | Flag | Short | Type | Default | Description |
 |------|-------|------|---------|-------------|

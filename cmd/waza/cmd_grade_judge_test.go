@@ -104,6 +104,51 @@ func TestEvidenceSavedGradeUsesRecordedContextWithoutWorkspaceAndKeepsBillingSep
 	require.Equal(t, original.TestOutcomes[0].Runs[0].JudgeEvidence.SHA256, graded.TestOutcomes[0].Runs[0].JudgeEvidence.SHA256)
 }
 
+func TestEvidenceSavedGradeKeepsRecoveryEvidenceVisibleToInlineGrader(t *testing.T) {
+	for _, recorded := range []bool{false, true} {
+		t.Run(fmt.Sprintf("recorded=%t", recorded), func(t *testing.T) {
+			spec, results, original := savedEvidenceFixture(t)
+			specData, err := os.ReadFile(spec)
+			require.NoError(t, err)
+			specData = append(specData, []byte(`
+  - name: cli-evidence
+    type: code
+    config:
+      language: javascript
+      assertions:
+        - "command_invocations.length === 2 && command_invocations[0].exit_code === undefined && command_invocations[1].exit_code === 0"
+`)...)
+			require.NoError(t, os.WriteFile(spec, specData, 0600))
+			run := &original.TestOutcomes[0].Runs[0]
+			run.DependencyModes = []models.DependencyMode{{Kind: "cli", Name: "az", Mode: "mocked"}}
+			if recorded {
+				run.CommandInvocations = []models.CommandInvocation{
+					{Command: "az", Args: []string{"account"}, ExitCode: nil},
+					{Command: "az", Args: []string{"account"}, ExitCode: new(0)},
+				}
+			}
+			require.NoError(t, saveOutcome(original, results))
+			output := filepath.Join(t.TempDir(), "graded.json")
+			calls := 0
+			err = runGradeWithJudge(t.Context(), io.Discard, io.Discard, spec, "task", results,
+				t.TempDir(), "", output, false, "", successfulSavedEvidenceJudge(t, &calls))
+			require.NoError(t, err)
+			graded, err := models.LoadEvaluationOutcome(output)
+			require.NoError(t, err)
+			require.Len(t, graded.TestOutcomes, 1)
+			require.Len(t, graded.TestOutcomes[0].Runs, 1)
+			result := graded.TestOutcomes[0].Runs[0]
+			require.Equal(t, recorded, result.Validations["cli-evidence"].Passed)
+			require.Equal(t, recorded, result.Status == models.StatusPassed)
+			require.Equal(t, 1, calls)
+			require.Len(t, result.PromptJudging, 1)
+			require.True(t, result.PromptJudging[0].SubmissionObserved)
+			require.Equal(t, run.CommandInvocations, result.CommandInvocations)
+			require.Equal(t, run.DependencyModes, result.DependencyModes)
+		})
+	}
+}
+
 func TestEvidenceSavedGradeVerboseWriteFailurePreservesJudgedRun(t *testing.T) {
 	for _, tc := range []struct {
 		name                      string

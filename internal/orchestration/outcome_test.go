@@ -154,7 +154,7 @@ func TestRegradeOutcome_ComputesStatsAndDigest(t *testing.T) {
 }
 
 func TestRegradeOutcome_VersionsNewReliabilityWithoutChangingOriginal(t *testing.T) {
-	for _, version := range []string{"1.0", "1.4", "1.5", "1.6", "1.99"} {
+	for _, version := range []string{"1.0", "1.4", "1.5", "1.6", "1.7", "1.99"} {
 		t.Run(version, func(t *testing.T) {
 			original := &models.EvaluationOutcome{
 				SchemaVersion: version,

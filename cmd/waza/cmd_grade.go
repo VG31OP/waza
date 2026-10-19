@@ -497,6 +497,7 @@ func gradeRunWithJudge(ctx context.Context, spec *models.EvalSpec, tc *models.Te
 		Transcript:         run.Transcript,
 		Session:            &run.SessionDigest,
 		ToolEvents:         run.ToolEvents,
+		CommandInvocations: run.CommandInvocations,
 		DurationMS:         run.DurationMs,
 		SessionID:          run.SessionDigest.SessionID,
 		WorkspaceDir:       workspace,

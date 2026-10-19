@@ -9,7 +9,7 @@ import (
 )
 
 func TestRegradeOutcomePreservesRecordedSkillAndProvenance(t *testing.T) {
-	for _, version := range []string{"", "1.0", "1.4", "1.5", "1.6"} {
+	for _, version := range []string{"", "1.0", "1.4", "1.5", "1.6", "1.7"} {
 		for _, tc := range []struct {
 			name, field, value string
 			present            bool
