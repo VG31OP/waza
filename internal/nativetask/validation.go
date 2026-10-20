@@ -9,6 +9,8 @@ import (
 	"slices"
 	"strings"
 
+	copilot "github.com/github/copilot-sdk/go"
+	"github.com/microsoft/waza/internal/execution"
 	"github.com/microsoft/waza/internal/jsonutil"
 	"github.com/microsoft/waza/internal/models"
 	"github.com/microsoft/waza/internal/releasepolicy"
@@ -169,16 +171,20 @@ func DecodeRecord(raw []byte, admitted *Admitted) (*Record, error) {
 		return nil, err
 	}
 	expected := Admission{r.CollectionID, r.PolicyDigest, r.ProfileDigest, r.PlanDigest, r.RequestDigest, r.Key}
-	if r.Kind != recordKind || r.Version != version || expected != binding {
+	data, err := admitted.prepared.view()
+	if err != nil {
+		return nil, err
+	}
+	expectedVersion := version
+	if data.CollectionVersion == "2.0" {
+		expectedVersion = "2.0"
+	}
+	if r.Kind != recordKind || r.Version != expectedVersion || expected != binding {
 		return nil, fmt.Errorf("native record binding differs from admission")
 	}
 	origin := models.EvidenceOrigin{EvalID: r.Key.EvalID, TaskID: r.Key.TaskID, RunNumber: r.Key.Trial, AttemptCount: r.Key.Attempt}
 	if r.Origin != origin || r.ActualRow.Origin != origin || r.Summary.Origin != origin || r.Summary.Key != r.Key {
 		return nil, fmt.Errorf("native record origin differs from allocated key")
-	}
-	data, err := admitted.prepared.view()
-	if err != nil {
-		return nil, err
 	}
 	if err := releasepolicy.VerifyRunRow(r.Summary, r.ActualRow); err != nil {
 		return nil, err
@@ -262,6 +268,11 @@ func DecodeRecord(raw []byte, admitted *Admitted) (*Record, error) {
 	if err := validateModels(r.Accounting.Models); err != nil {
 		return nil, err
 	}
+	if expectedVersion == "2.0" && r.Summary.Category == "behavioral" {
+		if err := validateObservedModels(data.Request.Model, r.EventModels.Models, r.Accounting.Models); err != nil {
+			return nil, err
+		}
+	}
 	if r.EventModels.Complete && (r.EventModels.EventsObserved == 0 || len(r.EventModels.Models) == 0) ||
 		r.Accounting.ModelAttributionComplete && len(r.Accounting.Models) == 0 {
 		return nil, fmt.Errorf("native complete model observation is empty")
@@ -291,8 +302,15 @@ func DecodeRecord(raw []byte, admitted *Admitted) (*Record, error) {
 			}
 		}
 	}
-	if r.Response != nil && r.Response.ErrorMsg != "" && r.ActualRow.Run.ErrorMsg != r.Response.ErrorMsg {
-		return nil, fmt.Errorf("native response error differs from retained row")
+	if r.Response != nil && r.Response.ErrorMsg != "" {
+		matches := r.ActualRow.Run.ErrorMsg == r.Response.ErrorMsg
+		if expectedVersion == "2.0" {
+			matches = slices.Contains(strings.Split(r.ActualRow.Run.ErrorMsg, "\n"), r.Response.ErrorMsg) ||
+				strings.HasPrefix(r.ActualRow.Run.ErrorMsg, r.Response.ErrorMsg+"\n") || matches
+		}
+		if !matches {
+			return nil, fmt.Errorf("native response error differs from retained row")
+		}
 	}
 	behavioral := r.Summary.Category == "behavioral"
 	if behavioral {
@@ -305,6 +323,11 @@ func DecodeRecord(raw []byte, admitted *Admitted) (*Record, error) {
 			r.Response.ToolPolicyMode != "deny_all" || len(r.Response.ToolPolicyDenials) > 0 ||
 			len(r.Diagnostics) > 0 || r.Output.Availability != "available" {
 			return nil, fmt.Errorf("operational native evidence cannot become behavioral")
+		}
+		if expectedVersion == "2.0" {
+			if err := validateCanonicalEventModels(data.Request.Model, r.EventModels.Models, r.Response.CanonicalEvents); err != nil {
+				return nil, err
+			}
 		}
 		if len(r.Summary.Checks) == 0 {
 			return nil, fmt.Errorf("native behavioral row needs actual scoped text checks")
@@ -370,7 +393,7 @@ func validateOutput(r *Record, raw []byte) error {
 				return fmt.Errorf("native assistant message data is malformed")
 			}
 			content, ok := data["content"].(string)
-			if !ok {
+			if !ok && r.Version != "2.0" {
 				return fmt.Errorf("native canonical assistant content is malformed")
 			}
 			presence := "typed_nonempty"
@@ -431,6 +454,52 @@ func validateModels(models []string) error {
 			return fmt.Errorf("native model inventory must be known, ordered and unique")
 		}
 		last = model
+	}
+	return nil
+}
+
+func validateObservedModels(requested string, observations ...[]string) error {
+	for _, models := range observations {
+		for _, model := range models {
+			if model != requested {
+				return fmt.Errorf("native observed model differs from fixed requested model")
+			}
+		}
+	}
+	return nil
+}
+
+func validateCanonicalEventModels(requested string, observed []string, events []json.RawMessage) error {
+	for _, event := range events {
+		var wire struct {
+			Type string          `json:"type"`
+			Data json.RawMessage `json:"data"`
+		}
+		if err := models.ValidateNativeJSONKeys(event, wire); err != nil {
+			return err
+		}
+		if err := json.Unmarshal(event, &wire); err != nil {
+			return fmt.Errorf("decoding native canonical event models: %w", err)
+		}
+		var decoded copilot.SessionEvent
+		if err := json.Unmarshal(event, &decoded); err != nil {
+			return fmt.Errorf("decoding native canonical event models: %w", err)
+		}
+		observation := execution.ObserveSessionEventModels(decoded)
+		if observation.EventsObserved == 0 {
+			continue
+		}
+		if err := models.ValidateNativeJSONKeys(wire.Data, decoded.Data); err != nil {
+			return err
+		}
+		for _, model := range observation.Models {
+			if model != requested {
+				return fmt.Errorf("native canonical event model differs from fixed requested model")
+			}
+			if !slices.Contains(observed, model) {
+				return fmt.Errorf("native canonical event model is absent from declared event observations")
+			}
+		}
 	}
 	return nil
 }

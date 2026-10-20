@@ -40,12 +40,32 @@ Mock observations are harness evidence, not agent quality; source binding is
 local consistency, not authenticated provenance. See
 [controlled comparisons](/waza/guides/controlled-comparisons/).
 
-This view intentionally preserves **base 1.0** decisions: required assurance
-remains nonpassing even when independent assurance artifacts are present.
-Only explicit outer CLI assessment with `--assurance-contract`, current per-arm
-inputs and fresh qualification/regrading can pass. The dashboard does not adopt
-stored report pass labels, authenticate reviewers or expose an outer-profile
-pass as a base decision.
+For selected native collections, optional `decision.native` data exposes the
+profile/version and each attempt's key, status, category/error, output
+availability, observed event/accounting models, usage completeness and
+lifecycle phases. Runtime version and provider currency remain unavailable;
+native assurance is unsupported. Collection errors are preserved alongside
+attempts, including an operational error after core artifacts were published;
+`native-stop.json` retains the stop cause. JSON export must preserve these
+optional observations and errors rather than turning an incomplete collection
+into a success.
+
+![Native release evidence view with recovered attempts and unavailable values](https://raw.githubusercontent.com/microsoft/waza/main/docs/images/native-release-evidence.png)
+
+*Deterministic SDK-fake illustration of a nonpassing golden-veto decision.
+Runtime version and provider currency are unavailable; native assurance is
+unsupported. This screenshot demonstrates rendering, not paid/live execution
+or model quality. Collection errors remain alongside attempts and are preserved
+in JSON export.*
+
+For legacy/mock collections, this view intentionally preserves **base 1.0**
+decisions: required assurance remains nonpassing even when independent
+assurance artifacts are present. Only explicit outer CLI assessment with
+`--assurance-contract`, current per-arm inputs and fresh qualification/regrading
+can pass. A selected native collection can pass its supported base decision
+within the bounded profile, but it cannot satisfy required assurance. The
+dashboard does not adopt stored report pass labels, authenticate reviewers or
+expose an outer-profile pass as a base decision.
 
 ### Dashboard Overview
 

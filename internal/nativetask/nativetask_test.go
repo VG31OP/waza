@@ -462,6 +462,273 @@ func TestLegacySessionDefaultsDoNotCertifyAbsence(t *testing.T) {
 		decoded.Capabilities(), "neither default counts nor received model completeness certify tool/session evidence")
 }
 
+func TestPublicTapeReaderBindsBehavioralObservedModelsToRequest(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		mutate  func(*Record)
+		wantErr string
+	}{
+		{
+			name: "behavioral null response with completed execution",
+			mutate: func(r *Record) {
+				r.Response = nil
+				r.Output = Output{Availability: "unavailable", Messages: []Message{}, Reason: "Response is missing."}
+				r.ActualRow.Run.FinalOutput = ""
+			},
+			wantErr: "native response/output contradicts execution/grading lifecycle",
+		},
+		{
+			name: "behavioral null response with failed execution",
+			mutate: func(r *Record) {
+				r.Response = nil
+				r.Output = Output{Availability: "unavailable", Messages: []Message{}, Reason: "Response is missing."}
+				r.ActualRow.Run.FinalOutput = ""
+				r.Lifecycle.Execute = Phase{"failed", "send_failed"}
+				r.Lifecycle.Grade = Phase{"not_attempted", "Execution failed."}
+			},
+			wantErr: "behavioral row has unfinished or failed phase",
+		},
+		{
+			name: "behavioral event model mismatch",
+			mutate: func(r *Record) {
+				r.EventModels = EventModels{Models: []string{"substituted-model"}, EventsObserved: 1, Complete: true}
+			},
+			wantErr: "observed model differs from fixed requested model",
+		},
+		{
+			name: "behavioral accounting model mismatch",
+			mutate: func(r *Record) {
+				r.Accounting = Accounting{SessionKey: r.Response.SessionKey, Source: "rpc", Models: []string{"substituted-model"},
+					ProviderCurrencyState: "unavailable", Reason: "Partial SDK accounting observation."}
+			},
+			wantErr: "observed model differs from fixed requested model",
+		},
+		{
+			name: "behavioral canonical event model mismatch",
+			mutate: func(r *Record) {
+				r.Response.CanonicalEvents = []json.RawMessage{json.RawMessage(
+					`{"type":"assistant.message","data":{"content":"actual nonempty typed output","model":"substituted-model"}}`)}
+			},
+			wantErr: "canonical event model differs from fixed requested model",
+		},
+		{
+			name: "matching canonical event model and declaration",
+			mutate: func(r *Record) {
+				r.EventModels = EventModels{Models: []string{"observed-test-model"}, EventsObserved: 1, Complete: true}
+				r.Response.CanonicalEvents = []json.RawMessage{json.RawMessage(
+					`{"type":"assistant.message","data":{"content":"actual nonempty typed output","model":"observed-test-model"}}`)}
+			},
+		},
+		{
+			name: "operational mismatch retained",
+			mutate: func(r *Record) {
+				*r = operational(*r, "Observed SDK model differs from fixed requested model.")
+				r.EventModels = EventModels{Models: []string{"substituted-model"}, EventsObserved: 1, Complete: true}
+				r.Accounting = Accounting{SessionKey: r.Response.SessionKey, Source: "events", Models: []string{"substituted-model"},
+					ProviderCurrencyState: "unavailable", Reason: "Partial SDK accounting observation."}
+			},
+		},
+		{
+			name: "matching observed models",
+			mutate: func(r *Record) {
+				zero := 0.0
+				r.EventModels = EventModels{Models: []string{"observed-test-model"}, EventsObserved: 1, Complete: true}
+				r.Accounting = Accounting{SessionKey: r.Response.SessionKey, Source: "rpc", Complete: true,
+					ModelAttributionComplete: true, Models: []string{"observed-test-model"}, ProviderCurrencyState: "unavailable",
+					Usage: &models.UsageStats{AICredits: &zero, ModelMetrics: map[string]models.ModelUsage{
+						"observed-test-model": {AICredits: &zero},
+					}}}
+			},
+		},
+		{
+			name:   "absent model observations",
+			mutate: func(*Record) {},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			prepared, admitted, _, _, record := collectionFixture(t)
+			require.Equal(t, "2.0", record.Version)
+			data, err := prepared.view()
+			require.NoError(t, err)
+			require.Equal(t, "2.0", data.CollectionVersion)
+			require.Equal(t, "observed-test-model", data.Request.Model)
+			tc.mutate(&record)
+			raw := encoded(t, record)
+			if record.Response == nil {
+				value, err := jsonutil.Parse(raw)
+				require.NoError(t, err)
+				object := objectValue(t, value)
+				require.Contains(t, object, "response")
+				require.Nil(t, object["response"], "the public record must explicitly retain response:null")
+				require.Equal(t, "behavioral", record.Summary.Category)
+			}
+			events, payload := recordTapeBytes(t, admitted, raw)
+			prefix, err := InspectCollectionPrefix(t.Context(), events, payload, []*Admitted{admitted})
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
+				require.Nil(t, prefix, "invalid public records must not return a partial prefix")
+				t.Logf("Public prefix rejected record: %v", err)
+				return
+			}
+			require.NoError(t, err)
+			require.Len(t, prefix.Records, 1)
+			require.Equal(t, "2.0", prefix.Records[0].Version)
+			require.Equal(t, record.Summary.Category, prefix.Records[0].Summary.Category)
+			require.Equal(t, record.EventModels, prefix.Records[0].EventModels)
+			require.Equal(t, record.Accounting, prefix.Records[0].Accounting)
+		})
+	}
+}
+
+func recordTapeBytes(t *testing.T, admitted *Admitted, raw []byte) ([]byte, []byte) {
+	t.Helper()
+	binding, err := admitted.Binding()
+	require.NoError(t, err)
+	var record Record
+	require.NoError(t, decodeExact(raw, &record))
+	recordDigest, rowDigest, err := recordDigests(raw)
+	require.NoError(t, err)
+	events := append(encoded(t, Event{Kind: eventKind, Version: version, Sequence: 1, Type: "start", Admission: binding}), '\n')
+	events = append(events, encoded(t, Event{Kind: eventKind, Version: version, Sequence: 2, Type: "terminal", Admission: binding,
+		State: record.Summary.Category, RecordDigest: recordDigest, RowDigest: rowDigest})...)
+	events = append(events, '\n')
+	return events, append(bytes.Clone(raw), '\n')
+}
+
+func TestPublicTapeReaderReconcilesAllCanonicalModelObservations(t *testing.T) {
+	events := []struct {
+		name string
+		raw  string
+	}{
+		{"usage", `{"type":"assistant.usage","data":{"model":"MODEL"}}`},
+		{"usage billing", `{"type":"assistant.usage","data":{"model":"observed-test-model","copilotUsage":{"model":"MODEL"}}}`},
+		{"usage token billing", `{"type":"assistant.usage","data":{"model":"observed-test-model","copilotUsage":{"tokenDetails":[{"model":"MODEL"}]}}}`},
+		{"turn start", `{"type":"assistant.turn_start","data":{"model":"MODEL"}}`},
+		{"turn end", `{"type":"assistant.turn_end","data":{"model":"MODEL"}}`},
+		{"turn retry", `{"type":"assistant.turn_retry","data":{"model":"MODEL"}}`},
+		{"model call start", `{"type":"model.call_start","data":{"model":"MODEL"}}`},
+		{"model call failure", `{"type":"model.call_failure","data":{"model":"MODEL"}}`},
+		{"session start", `{"type":"session.start","data":{"selectedModel":"MODEL"}}`},
+		{"session resume", `{"type":"session.resume","data":{"selectedModel":"MODEL"}}`},
+		{"session change new", `{"type":"session.model_change","data":{"newModel":"MODEL"}}`},
+		{"session change previous", `{"type":"session.model_change","data":{"newModel":"observed-test-model","previousModel":"MODEL"}}`},
+		{"session deselected", `{"type":"session.model_deselected","data":{"previousModel":"MODEL"}}`},
+		{"shutdown current", `{"type":"session.shutdown","data":{"currentModel":"MODEL"}}`},
+		{"shutdown metrics", `{"type":"session.shutdown","data":{"modelMetrics":{"MODEL":{}}}}`},
+		{"shutdown agent metrics", `{"type":"session.shutdown","data":{"agentMetrics":{"agent":{"modelMetrics":{"MODEL":{}}}}}}`},
+		{"compaction start", `{"type":"session.compaction_start","data":{"model":"MODEL"}}`},
+		{"compaction complete", `{"type":"session.compaction_complete","data":{"compactionTokensUsed":{"model":"MODEL"}}}`},
+		{"compaction billing", `{"type":"session.compaction_complete","data":{"compactionTokensUsed":{"model":"observed-test-model","copilotUsage":{"model":"MODEL"}}}}`},
+		{"compaction token billing", `{"type":"session.compaction_complete","data":{"compactionTokensUsed":{"model":"observed-test-model","copilotUsage":{"tokenDetails":[{"model":"MODEL"}]}}}}`},
+		{"fusion started", `{"type":"assistant.fusion_phase_started","data":{"model":"MODEL"}}`},
+		{"fusion completed", `{"type":"assistant.fusion_phase_completed","data":{"model":"MODEL"}}`},
+		{"fusion failed", `{"type":"assistant.fusion_phase_failed","data":{"model":"MODEL"}}`},
+		{"subagent configured", `{"type":"subagent.configured","data":{"model":"MODEL"}}`},
+		{"subagent started", `{"type":"subagent.started","data":{"model":"MODEL"}}`},
+		{"subagent completed", `{"type":"subagent.completed","data":{"model":"MODEL"}}`},
+		{"subagent failed", `{"type":"subagent.failed","data":{"model":"MODEL"}}`},
+		{"agent interrupted", `{"type":"agent.interrupted","data":{"model":"MODEL"}}`},
+		{"tools updated", `{"type":"session.tools_updated","data":{"model":"MODEL"}}`},
+		{"tool start", `{"type":"tool.execution_start","data":{"model":"MODEL"}}`},
+		{"tool complete", `{"type":"tool.execution_complete","data":{"model":"MODEL"}}`},
+		{"skill invoked", `{"type":"skill.invoked","data":{"model":"MODEL"}}`},
+		{"exit plan", `{"type":"exit_plan_mode.requested","data":{"model":"MODEL"}}`},
+	}
+	for _, event := range events {
+		t.Run(event.name, func(t *testing.T) {
+			for _, mode := range []string{"matching", "mismatch", "undeclared", "operational", "private"} {
+				t.Run(mode, func(t *testing.T) {
+					_, admitted, _, _, record := collectionFixture(t)
+					if mode == "private" {
+						_, _, admitted, record = fixture(t)
+					}
+					record.EventModels = EventModels{Models: []string{"observed-test-model"}, EventsObserved: 2, Complete: true}
+					model := "observed-test-model"
+					if mode == "mismatch" || mode == "operational" || mode == "private" {
+						model = "substituted-model"
+					}
+					if mode == "undeclared" {
+						record.EventModels = EventModels{Models: []string{}}
+					}
+					if mode == "operational" {
+						record = operational(record, "Observed SDK model differs from fixed requested model.")
+					}
+					matching := strings.ReplaceAll(event.raw, "MODEL", "observed-test-model")
+					mutated := strings.ReplaceAll(event.raw, "MODEL", model)
+					var sdkEvent copilot.SessionEvent
+					require.NoError(t, json.Unmarshal([]byte(mutated), &sdkEvent))
+					collector := execution.NewSessionUsageCollector()
+					collector.On(sdkEvent)
+					require.Contains(t, collector.EventModelObservation().Models, model,
+						"fixture must exercise a model observation actually supported by the collector")
+					if model != "observed-test-model" {
+						require.NotEqual(t, matching, mutated, "change only the selected canonical model field")
+					}
+					record.Response.CanonicalEvents = append(record.Response.CanonicalEvents, json.RawMessage(mutated))
+					raw := encoded(t, record)
+					tape, rows := recordTapeBytes(t, admitted, raw)
+					var prefix *Prefix
+					var err error
+					if mode == "private" {
+						prefix, err = InspectPrefix(t.Context(), tape, rows, []*Admitted{admitted})
+					} else {
+						prefix, err = InspectCollectionPrefix(t.Context(), tape, rows, []*Admitted{admitted})
+					}
+					if mode == "mismatch" || mode == "undeclared" {
+						want := "canonical event model differs from fixed requested model"
+						if mode == "undeclared" {
+							want = "canonical event model is absent from declared event observations"
+						}
+						require.ErrorContains(t, err, want)
+						require.Nil(t, prefix)
+						return
+					}
+					require.NoError(t, err)
+					require.Len(t, prefix.Records, 1)
+					require.Equal(t, record.Response.CanonicalEvents, prefix.Records[0].Response.CanonicalEvents)
+					require.Equal(t, record.Summary.Category, prefix.Records[0].Summary.Category)
+				})
+			}
+		})
+	}
+}
+
+func TestPublicTapeReaderCanonicalModelAvailability(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		raw     string
+		wantErr string
+	}{
+		{"absent", `{"type":"assistant.turn_start","data":{}}`, ""},
+		{"null model", `{"type":"assistant.turn_start","data":{"model":null}}`, ""},
+		{"null data", `{"type":"assistant.turn_start","data":null}`, ""},
+		{"unknown model", `{"type":"assistant.turn_start","data":{"model":"unknown"}}`, ""},
+		{"malformed model", `{"type":"assistant.turn_start","data":{"model":42}}`, "decoding native canonical event models"},
+		{"malformed nested model", `{"type":"assistant.usage","data":{"model":"observed-test-model","copilotUsage":{"tokenDetails":[{"model":42}]}}}`, "decoding native canonical event models"},
+		{"type shadow", `{"type":"assistant.turn_start","Type":"session.info","data":{"model":"substituted-model"}}`, "native JSON key"},
+		{"data shadow", `{"type":"assistant.turn_start","data":{"model":"substituted-model"},"Data":{"model":"observed-test-model"}}`, "native JSON key"},
+		{"model shadow", `{"type":"assistant.turn_start","data":{"model":"substituted-model","Model":"observed-test-model"}}`, "native JSON key"},
+		{"nested model shadow", `{"type":"assistant.usage","data":{"model":"observed-test-model","copilotUsage":{"model":"substituted-model","Model":"observed-test-model"}}}`, "native JSON key"},
+		{"unrelated event", `{"type":"session.info","data":{"message":"info","model":"other-model"}}`, ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, admitted, _, _, record := collectionFixture(t)
+			record.EventModels = EventModels{Models: []string{"observed-test-model"}, EventsObserved: 1}
+			record.Response.CanonicalEvents = append(record.Response.CanonicalEvents, json.RawMessage(tc.raw))
+			tape, rows := recordTapeBytes(t, admitted, encoded(t, record))
+			prefix, err := InspectCollectionPrefix(t.Context(), tape, rows, []*Admitted{admitted})
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
+				require.Nil(t, prefix)
+				return
+			}
+			require.NoError(t, err)
+			require.Len(t, prefix.Records, 1)
+			require.Equal(t, record.Response.CanonicalEvents, prefix.Records[0].Response.CanonicalEvents)
+		})
+	}
+}
+
 func TestFinalAccountingZeroVersusMissingAndPartial(t *testing.T) {
 	_, _, admitted, r := fixture(t)
 	zero := 0.0
@@ -697,4 +964,218 @@ func fixtureTapeBytes(t *testing.T, admissions []*Admitted, records [][]byte) ([
 		payload = append(payload, '\n')
 	}
 	return events, payload
+}
+
+// Frozen private 1.0 fixture and acceptance oracle: b64c6bb10, before public
+// model binding. Both observed model inventories intentionally differ from the request.
+const frozenPrivateModelMismatchRecord = `{
+  "kind": "waza.release-native-task-attempt",
+  "version": "1.0",
+  "collection_id": "c8809a2f690e9145dc3074b48551a56338da64510d8eb468d2a731e3a6a21f92",
+  "policy_digest": {
+    "sha256": "785c7c9e8eb92b41a6b69771102ecc8b635532dc69a8af65a6f3e68fb29245a2",
+    "encoding": "json-v1"
+  },
+  "profile_digest": {
+    "sha256": "c8809a2f690e9145dc3074b48551a56338da64510d8eb468d2a731e3a6a21f92",
+    "encoding": "json-v1"
+  },
+  "resolved_plan_digest": {
+    "sha256": "df1912786a1008385da3992614e8d95a5a0a0e48fa3a10d933169148f9e158a3",
+    "encoding": "json-v1"
+  },
+  "request_digest": {
+    "sha256": "5ba27545763382701704a7b779d4a73695916b98c7f0ada1260a637c231cc6ef",
+    "encoding": "json-v1"
+  },
+  "key": {
+    "cluster_id": "cluster",
+    "task_id": "task",
+    "trial_ordinal": 1,
+    "arm": "baseline",
+    "eval_id": "eval",
+    "attempt_ordinal": 1
+  },
+  "origin": {
+    "eval_id": "eval",
+    "task_id": "task",
+    "run_number": 1,
+    "attempt_count": 1,
+    "prior_attempts": ""
+  },
+  "lifecycle": {
+    "construction": {
+      "state": "completed"
+    },
+    "initialize": {
+      "state": "completed"
+    },
+    "execute": {
+      "state": "completed"
+    },
+    "grade": {
+      "state": "completed"
+    },
+    "shutdown": {
+      "state": "completed"
+    }
+  },
+  "response": {
+    "session_key": {
+      "sha256": "cce7ed05612e0aa42deb2737659e9b4e5231548733b2bd8c6571725f098a127e",
+      "encoding": "json-v1"
+    },
+    "success": true,
+    "error_msg": "",
+    "final_output": "actual nonempty typed output",
+    "duration_ms": 0,
+    "canonical_events": [
+      {
+        "data": {
+          "content": "actual nonempty typed output"
+        },
+        "type": "assistant.message"
+      }
+    ],
+    "tool_policy_mode": "deny_all",
+    "tool_policy_denials": [],
+    "usage_is_cumulative": false,
+    "usage_revision": 0,
+    "usage": null
+  },
+  "output": {
+    "availability": "available",
+    "value": "actual nonempty typed output",
+    "messages": [
+      {
+        "event_ordinal": 1,
+        "content": "actual nonempty typed output",
+        "content_presence": "typed_nonempty"
+      }
+    ]
+  },
+  "diagnostics": [],
+  "event_models": {
+    "models": [
+      "substituted-model"
+    ],
+    "events_observed": 1,
+    "complete": true
+  },
+  "accounting": {
+    "session_key": {
+      "sha256": "cce7ed05612e0aa42deb2737659e9b4e5231548733b2bd8c6571725f098a127e",
+      "encoding": "json-v1"
+    },
+    "source": "rpc",
+    "complete": false,
+    "model_attribution_complete": false,
+    "models": [
+      "substituted-model"
+    ],
+    "usage": null,
+    "provider_currency_state": "unavailable",
+    "reason": "Partial SDK accounting observation."
+  },
+  "actual_row": {
+    "origin": {
+      "eval_id": "eval",
+      "task_id": "task",
+      "run_number": 1,
+      "attempt_count": 1,
+      "prior_attempts": ""
+    },
+    "run": {
+      "run_number": 1,
+      "attempts": 1,
+      "prompt": "synthetic prompt",
+      "status": "passed",
+      "duration_ms": 0,
+      "validations": {
+        "check": {
+          "identifier": "check",
+          "type": "text",
+          "score": 1,
+          "weight": 1,
+          "passed": true,
+          "feedback": "",
+          "duration_ms": 0
+        }
+      },
+      "session_digest": {
+        "tool_call_count": 0,
+        "tools_used": [],
+        "errors": []
+      },
+      "final_output": "actual nonempty typed output"
+    }
+  },
+  "summary": {
+    "key": {
+      "cluster_id": "cluster",
+      "task_id": "task",
+      "trial_ordinal": 1,
+      "arm": "baseline",
+      "eval_id": "eval",
+      "attempt_ordinal": 1
+    },
+    "origin": {
+      "eval_id": "eval",
+      "task_id": "task",
+      "run_number": 1,
+      "attempt_count": 1,
+      "prior_attempts": ""
+    },
+    "status": "passed",
+    "category": "behavioral",
+    "checks": [
+      {
+        "scope": "eval",
+        "grader": "check",
+        "passed": true,
+        "score": 1,
+        "operational_state": "observed"
+      }
+    ],
+    "runtime": {
+      "task_id": "task",
+      "requested_engine": "",
+      "requested_model": "",
+      "requested_reasoning": "",
+      "availability": "unavailable",
+      "engine_implementation": "",
+      "model_version": "",
+      "reason": "Synthetic fixture is not runtime evidence."
+    },
+    "evidence_references": []
+  }
+}`
+
+func TestPrivateTapeReaderPreservesFrozenModelMismatch(t *testing.T) {
+	prepared, profile, admitted, record := fixture(t)
+	require.Equal(t, "1.0", record.Version)
+	require.Equal(t, "1.0", profile.Version)
+	data, err := prepared.view()
+	require.NoError(t, err)
+	require.Empty(t, data.CollectionVersion)
+	require.Equal(t, "observed-test-model", data.Request.Model)
+	var compact bytes.Buffer
+	require.NoError(t, json.Compact(&compact, []byte(frozenPrivateModelMismatchRecord)))
+	var frozen Record
+	require.NoError(t, json.Unmarshal(compact.Bytes(), &frozen))
+	require.Equal(t, "1.0", frozen.Version)
+	require.Equal(t, "behavioral", frozen.Summary.Category)
+	require.Equal(t, []string{"substituted-model"}, frozen.EventModels.Models)
+	require.Equal(t, []string{"substituted-model"}, frozen.Accounting.Models)
+	events, payload := recordTapeBytes(t, admitted, compact.Bytes())
+	root, err := os.OpenRoot(t.TempDir())
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, root.Close()) })
+	require.NoError(t, root.WriteFile(eventFile, events, 0o600))
+	require.NoError(t, root.WriteFile(payloadFile, payload, 0o600))
+	prefix, err := ReadPrefix(t.Context(), root, []*Admitted{admitted})
+	require.NoError(t, err)
+	require.Len(t, prefix.Records, 1)
+	require.Equal(t, frozen, prefix.Records[0])
+	require.Nil(t, prefix.Pending)
 }

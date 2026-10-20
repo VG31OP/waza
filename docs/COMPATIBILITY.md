@@ -170,6 +170,30 @@ regression test, not a new organizational assignment.
 | `grade` | Emits JSON `passed: false` for a failed verdict but currently exits 0; consumers must inspect the verdict. This is reporting, not the CI gate. |
 | `replay` | 0 consistency pass, 1 inconsistency/divergence; configuration errors use the normal error exit |
 
+## Explicit native release-policy addition
+
+Native Copilot collection is additive and requires explicit
+`--collector native-copilot` selection on both `compare-plan` and
+`compare-collect`. The mock collector remains the default, and ordinary
+`compare`/`gate` behavior and exits are unchanged unless a release policy and
+collection directory are explicitly selected.
+
+Native planning writes a `waza.release-native-policy` version `1.0` envelope
+containing the core policy protocol version `1.0`, native task profile version
+`2.0`, source-capture digest and required core
+`collection_profile: "copilot_sdk_single_turn_text_v1"` discriminator. Frozen
+core-only readers reject both the envelope and the extracted core policy with
+that unknown discriminator; stripping the wrapper does not make native policy
+legacy-compatible. The public native 2.0 adapter bounds source, evaluator,
+capture-wire, attempt-descriptor, request, path and tape sizes; those bounds do
+not change existing private 1.0 bounds. Oversized native payloads/tapes fail
+explicitly. Operationally incomplete native collection returns nonzero even
+after core publication, with the cause in `native-stop.json`; an API collection
+item's `error` can coexist with its attempts. Native collection can incur
+provider usage and durable creation is limited to Linux/macOS. The
+compatibility corpus remains offline and does not invoke this paid-capable
+producer.
+
 ## Three sanitized workflows
 
 See [the scenario guide](../examples/compatibility/README.md).
