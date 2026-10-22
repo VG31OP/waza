@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -29,7 +28,11 @@ func newMCPMockCommand() *cobra.Command {
 				return fmt.Errorf("parse mock config: %w", err)
 			}
 			logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
-			mcpmock.ServeStdio(context.Background(), &cfg, os.Stdin, os.Stdout, logger)
+			// Retain default signal termination: inherited stdio may not unblock
+			// on Close, so graceful root cancellation cannot safely join it.
+			if err := mcpmock.ServeCancelableStdio(cmd.Context(), &cfg, os.Stdin, os.Stdout, logger); err != nil {
+				return fmt.Errorf("serve MCP mock: %w", err)
+			}
 			return nil
 		},
 	}

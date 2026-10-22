@@ -6,8 +6,8 @@ description: Inspect local prerequisites and descriptive requirement references 
 `waza preflight` builds an agent-free inventory of an eval's local prerequisites.
 It does **not** replace `waza check` skill readiness or execute the evaluation.
 
-**Upcoming/main-only:** build current source, not standalone stable `v0.38.10`,
-before these commands. See [availability](../../reference/releases/) and the
+**Available in v0.39.0:** install the published standalone release or run
+`waza update` before these commands. See [availability](../../reference/releases/) and the
 [credential-free Quick Start](../../quick-start/).
 
 ```bash
@@ -215,9 +215,13 @@ pinned cached presets, and merged overrides. External schema prerequisites
 stop that materialization with an unresolved diagnostic and `complete: false`;
 ordinary matcher literals and MCP returned payloads are not treated as schemas.
 Invalid static grader fields still fail by default when the same pinned preset
-or merged override also has an unavailable schema. Fixture-backed MCP responses
-likewise retain both invalid regex configuration and unresolved schema
-prerequisites, across responses and declaration order. These mixed cases report
+or merged override also has an unavailable schema. Inline and fixture-backed MCP
+responses retain both invalid regex configuration and unresolved schema
+prerequisites, across responses and declaration order. Finite mock source errors
+also do not suppress independent eval, task, or checkpoint grader diagnostics.
+Task sequence eligibility is checked against the enclosing eval version before
+offline decoding; an unavailable grader schema cannot hide an unsupported sequence.
+These mixed cases report
 `invalid` plus an `unresolved` diagnostic and keep `complete: false`; a regex or
 static-field failure never makes an external schema prerequisite verified.
 Later grader schema-file and MCP input-schema compilation also sets

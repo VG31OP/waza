@@ -136,7 +136,7 @@ test('adversarial command fences separate offline smoke from prerequisite-gated 
   assert.ok(fences.length > 0);
   assert.match(fences[0][1], /waza adversarial --engine mock/);
   assert.doesNotMatch(fences[0][1], /copilot-sdk|cd skills\//, 'first copyable block must remain offline only');
-  const prerequisites = ['development-main skill-binding fix', '`v0.38.10`',
+  const prerequisites = ['skill-binding fix', '`v0.38.10`',
     'SDK authentication and usage prerequisites', 'standalone CLI login',
     'model access', 'approved runtime/tool permissions', 'Real runs may incur model costs'];
   let realFences = 0;
@@ -186,4 +186,64 @@ test('concepts distinguish repeated trials from discarded retry outputs', () => 
   assert.match(concepts, /`prior_attempts: not_preserved`/);
   assert.match(concepts, /reported usage from discarded attempts/);
   assert.match(concepts, /An individual snapshot is not a complete retry history/);
+});
+
+test('release articles are linked from Releases and use published screenshot assets', () => {
+  for (const slug of ['v0-39-0', 'dashboard-lab']) {
+    const article = read(`site/src/content/docs/releases/${slug}.mdx`);
+    assert.ok(read('site/astro.config.mjs').includes(`slug: 'releases/${slug}'`));
+    assert.ok(read('site/src/content/docs/reference/releases.mdx').includes(`](../../releases/${slug}/)`));
+    assert.match(article, /import ZoomImage from '\.\.\/\.\.\/\.\.\/components\/ZoomImage\.astro'/);
+    const screenshots = [...article.matchAll(/<ZoomImage src="([^"]+)" alt="([^"]+)" \/>/g)];
+    assert.equal(screenshots.length, 3, slug);
+    for (const [, source] of screenshots) {
+      assert.match(source, /^\/images\/.+\.png$/);
+      assert.ok(existsSync(resolve(root, `site/public${source}`)), `missing release screenshot: ${source}`);
+    }
+    assert.doesNotMatch(article, /\]\(\.\.?\/[^)]*CHANGELOG\.md/);
+  }
+  const article = read('site/src/content/docs/releases/v0-39-0.mdx');
+  assert.match(article, /^title: "Waza v0\.39\.0:/m);
+  assert.match(article, /Synthetic demo screenshot, not production telemetry/);
+  assert.match(article, /Fixture-backed native-profile view/);
+});
+
+test('Dashboard Lab article distinguishes saved results, synthetic examples, and release decisions', () => {
+  const article = read('site/src/content/docs/releases/dashboard-lab.mdx');
+  assert.match(article, /waza serve --lab --results-dir \.\/results --no-browser/);
+  assert.match(article, /experimental, opt-in viewer for saved evaluation results/);
+  assert.match(article, /Synthetic demo screenshot/);
+  assert.match(article, /Fixture-backed saved-result view with cached mock provenance/);
+  assert.match(article, /not an active-worker monitor/);
+  assert.match(article, /descriptive comparisons, not statistical-significance tests/);
+  assert.match(article, /\]\(\.\.\/\.\.\/guides\/dashboard-lab\/\)/);
+  assert.match(article, /\]\(\.\.\/v0-39-0\/\)/);
+  assert.match(read('site/src/content/docs/releases/v0-39-0.mdx'), /\]\(\.\.\/dashboard-lab\/\)/);
+});
+
+test('release overview identifies the published version and retains the former availability anchor', () => {
+  const overview = read('site/src/content/docs/reference/releases.mdx');
+  assert.match(overview, /## Current published standalone release: v0\.39\.0/);
+  assert.match(overview, /id="upcoming-main-only-capabilities"/);
+  assert.equal([...overview.matchAll(/releases\/download\/v0\.39\.0\/waza-/g)].length, 6);
+  assert.doesNotMatch(overview, /releases\/(?:download|tag)\/v0\.38\.10/);
+  assert.match(read('site/src/content/docs/guides/dashboard-lab.mdx'), /Available in v0\.39\.0 and opt-in/);
+});
+
+test('published workflow guides do not require unreleased main for v0.39.0 features', () => {
+  const paths = [
+    'README.md', 'docs/GETTING-STARTED.md', 'docs/GUIDE.md',
+    'site/src/content/docs/index.mdx',
+    'site/src/content/docs/getting-started.mdx', 'site/src/content/docs/quick-start.mdx',
+    'site/src/content/docs/concepts.mdx', 'site/src/content/docs/about.mdx',
+    'site/src/content/docs/reference/cli.mdx',
+    ...['eval-yaml', 'preflight', 'snapshot-replay', 'controlled-comparisons', 'ci-cd', 'graders', 'dashboard-lab', 'adversarial']
+      .map((name) => `site/src/content/docs/guides/${name}.mdx`),
+  ];
+  for (const path of paths) {
+    const text = read(path);
+    assert.match(text, /v0\.39\.0/, path);
+    assert.doesNotMatch(text, /(?:upcoming|current source)\/main-only|source-build-only|require upcoming main|build upcoming main/i, path);
+    assert.match(text, /reference\/releases|releases\/#upcoming-main-only-capabilities/, path);
+  }
 });

@@ -4,16 +4,19 @@ description: Explicit fixed-design release assessment, lineage boundaries and cu
 ---
 
 Source-bound planning, paired collection, strict reassessment, structural schemas
-and a separate dashboard decision view are implemented for **offline mock,
-no-skills execution with native text/string checks**. Other strict collection
-paths are unsupported; ordinary runs retain all existing capabilities. An
-explicit independent offline assurance profile qualifies finite authored text
-cases and regrades retained actual responses without changing base 1.0.
-Mock observations validate the harness, not agent quality.
+and a separate dashboard decision view use the offline mock collector by
+default. A separately selected `native-copilot` profile supports a bounded,
+potentially paid Copilot SDK path; see
+[the native collection scope](#opt-in-to-native-copilot-collection). Other strict
+collection paths are unsupported; ordinary runs retain all existing
+capabilities. The independent offline assurance profile remains separate and
+does not change base 1.0. Mock observations validate the harness, not agent
+quality.
 
-**Upcoming/main-only:** build current source as described in
+**Available in v0.39.0 and explicitly selected:** install the standalone release as described in
 [release availability](../../reference/releases/#upcoming-main-only-capabilities).
-Stable `v0.38.10` does not include this workflow.
+Older `v0.38.10` does not include this workflow. Platform, paid-call and profile
+restrictions below still apply.
 
 Ordinary opt-in snapshot `run` capture and supported `grade` paths already
 produce scoped result-level `evidence` and `requirement_explanations`.
@@ -26,33 +29,26 @@ These observations are not strict paired-release evidence:
 | Grade with workspace or selected evidence snapshot | Supported native regrade observations and scoped explanations | Only supported checks and verified selected bytes; no inferred workspace or fresh agent run |
 
 Missing, unassessed and error states remain distinct and cannot pass by default.
-Native strict paired producer/lifecycle integration and automatic adoption of
-ordinary or historical results remain unsupported. Snapshot-only metadata cannot
-satisfy selected required release evidence. In particular, snapshot-only metadata cannot satisfy selected required evidence.
+Ordinary snapshot results and historical results are not adopted as strict
+paired evidence. Snapshot-only metadata cannot satisfy selected required
+release evidence.
 
-## Internal native groundwork is not a public producer
+## Native implementation boundaries
 
-G1 shares complete source projections; G2 reconstructs them from a distinct
-private capture and retained read associations without reopening source roots.
-Static slot joins independently check selected possible attempts. G3 inspects
-supplied retry events through the existing replay machine, preserving accepted
-starts before terminals and terminals before complete trial summaries.
+The native source projector, retained source capture, policy-slot validation
+and attempt-tape reader are implementation components used by the explicitly
+selected CLI producer. Static possible slots or caller-supplied tape joins do
+not themselves prove actual execution, durable acknowledgment, retry
+permission, currentness or release authority. A `structurally_matched` result
+describes supplied consistency only. Strict native readers reject torn or
+contradictory records rather than accepting a shorter valid prefix.
 
-These internal primitives do not enable public native collection. Static
-possible slots are not actual starts, skips or consumed retries. Supplied-event
-consistency is not independently witnessed execution, durable acknowledgment,
-retry permission, currentness or release authority. No native tape/paired
-journal identity translation or collector lifecycle is implied.
+Native durable creation supports Linux/macOS only; Windows supplied-reader
+checks do not certify writing. Ordinary collectors, legacy decoders and default
+command behavior remain unchanged. See the
+[detailed native contract](https://github.com/microsoft/waza/blob/main/docs/CONTROLLED-COMPARISONS.md#opt-in-native-copilot-collection).
 
-New private durable writers support Linux/macOS only, not Windows. Windows
-supplied-reader and fixture-byte checks do not certify durable writing.
-Missing input, empty streams, torn final fragments and invalid evidence remain
-distinct; no tail after collection end is accepted. Strict raw-member and
-allocation checks apply only to the selected internal inspection path; legacy
-decoders and command defaults remain unchanged. See
-[the detailed internal contract](https://github.com/microsoft/waza/blob/main/docs/CONTROLLED-COMPARISONS.md#internal-native-task-groundwork-not-an-enabled-producer).
-
-## Plan and collect offline
+## Plan and collect offline with the default mock
 
 ```bash
 waza compare-plan \
@@ -94,6 +90,73 @@ are not falsely reported as executed-input drift. No CSV/template-generated
 tasks, skills/agents, external dependencies, hooks, parallelism, multiturn,
 checkpoint or non-text graders are supported by this collection producer.
 
+## Opt in to native Copilot collection
+
+The bundled eval is a mock harness fixture, not a native-Copilot example. For
+native collection, supply your own fixed named-model evals and predeclared
+design/requirements. Explicitly select the native profile during both planning
+and collection; assessment selects the resulting envelope as usual. Do not run
+these commands as part of offline example checks; native collection may incur
+provider usage:
+
+```bash
+waza compare-plan --collector native-copilot \
+  --baseline-eval baseline/eval.yaml --candidate-eval candidate/eval.yaml \
+  --design design.json --requirements requirements.json \
+  --output native-policy.json
+waza compare-collect --collector native-copilot \
+  --baseline-eval baseline/eval.yaml --candidate-eval candidate/eval.yaml \
+  --release-policy native-policy.json --collection-dir new-native-collection
+waza gate --release-policy native-policy.json \
+  --collection-dir new-native-collection --format json
+```
+
+This explicitly selected profile is limited to Copilot SDK, fixed named models,
+single turns, no skills, deny-all **client** tools and native text/string
+checks. It does not support hooks, MCP, repositories, cache, concurrency,
+resume, checkpoints, multiturn or other graders. Planning does not invoke the
+SDK; collection may incur provider usage. Native durable creation is Linux and
+macOS only and rejects other platforms before reserving outputs. Client tool
+denial is not server isolation.
+
+Observed input/output tokens and AI credits are distinct from provider
+currency. Required prior usage that is unavailable blocks further starts;
+best-effort checks run before new attempts and already-running work can
+overshoot limits asynchronously. There is no token-price conversion or hard
+spending cap. Runtime version and provider currency remain unavailable, and
+ambiguous output presence is not converted into empty output. Required
+unsupported runtime, assurance or currency evidence does not pass.
+
+The native policy is a `waza.release-native-policy` 1.0 envelope embedding the
+core policy protocol 1.0, native task profile 2.0, source-capture digest and
+required `collection_profile: "copilot_sdk_single_turn_text_v1"` discriminator.
+Frozen core-only readers reject both the outer envelope and an extracted core
+policy with that unknown discriminator; stripping the wrapper does not make
+native policy legacy-compatible. Ordinary mock policy and gate defaults do
+not change.
+
+The public native 2.0 adapter bounds selected source files and ordinary
+evaluator input files to 16 MiB each, while the captured evaluator executable
+is limited to 256 MiB. Aggregate sources are limited to 512 MiB and 16,384
+entries, and the full capture wire to 1 GiB. These are artifact-admission
+bounds, not process-memory caps; decoding large captures may require additional
+memory. Per-attempt digest-only descriptors are limited to 128 MiB, requests to
+16 MiB and source paths to 4,096 bytes. Native tapes and record streams are
+limited to 16 MiB. Oversized payloads or aggregate tapes fail explicitly,
+leaving durable pending/nonpassing evidence; the adapter does not silently
+discard data or promise unbounded retention. These public bounds do not change
+existing private 1.0 bounds.
+
+Operationally incomplete native collection returns nonzero even if core
+publication completed. `native-stop.json` retains the error, budget or
+currentness cause; the API collection item's `error` may coexist with its
+attempts. The optional API `decision.native` view lists retained attempt
+lifecycle, status, output availability, model observations and usage
+completeness while labeling unavailable runtime/currency and unsupported
+assurance. See the
+[full contract](https://github.com/microsoft/waza/blob/main/docs/CONTROLLED-COMPARISONS.md#opt-in-native-copilot-collection)
+for artifact and statistical boundaries.
+
 ## Dashboard and structural schemas
 
 Serve the local collection parent with `waza serve --results-dir <root>` and
@@ -117,6 +180,9 @@ closing the owning handles releases that pin. Retention does not promise rename
 availability on every platform. The reader explicitly rejects JavaScript/Plan 9
 pathname-backed roots.
 Windows supplied-artifact reading is not support for durable collection.
+For native policies, the returned decision may also include the optional
+`native` profile view and per-attempt lifecycle/usage fields; this does not
+upgrade unavailable runtime, currency or assurance into observed evidence.
 
 The versioned `schemas/release-*-1.0.schema.json` files provide structural
 validation. The Go reader additionally enforces exact JSON tokens, source
@@ -189,7 +255,7 @@ Every actual endpoint needs an unambiguous requirement/check mapping. Both
 arms need fresh exact offline1.0 reports, deterministic regrading of retained
 actual responses, and all base non-assurance pass conditions, including
 statistics, golden first-attempt veto, operations and any required billing
-totals. No live SDK, calibration, paid1.1/billing support or automatic paid
+totals. No live SDK assurance, calibration, paid1.1/billing support or automatic paid
 validation is supported.
 
 References remain evaluator-only and use the existing grader-reference and

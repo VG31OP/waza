@@ -1,7 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { copyFile } from "node:fs/promises";
 import { mockAllAPIs } from "./helpers/api-mock";
 import { RUNS } from "./fixtures/mock-data";
 import { evidenceDetail } from "./fixtures/evidence-data";
+import promptJudging from "./fixtures/prompt-judging.json" with { type: "json" };
 
 import { RECORDED_RELIABILITY } from "./fixtures/reliability-data";
 
@@ -22,6 +24,53 @@ test.describe("Dashboard lab screenshots", () => {
     for (const path of ["../docs/images/dashboard-lab-compare.png", "../site/public/images/dashboard-lab-compare.png"]) {
       await page.screenshot({ path, animations: "disabled", fullPage: true });
     }
+  });
+
+  test("dashboard-lab-evidence", async ({ page }) => {
+    const summary = {
+      ...RUNS[0]!,
+      model: "mock-model",
+      aiCredits: undefined,
+      skill: "saved-scenario",
+      spec: "evidence-judge",
+      outcome: "failed",
+      timestamp: "2026-10-16T12:00:00Z",
+      repetitions: 3,
+      taskCount: 2,
+      passCount: 1,
+      weightedScore: 0.925,
+      source: "local",
+    };
+    const recorded = evidenceDetail();
+    const run = {
+      ...recorded,
+      ...summary,
+      statistics: RECORDED_RELIABILITY.statistics,
+      tasks: [{
+        ...RECORDED_RELIABILITY.tasks[0]!,
+        id: "report-task",
+        evidenceRuns: recorded.tasks[0]!.evidenceRuns,
+      }, { ...RECORDED_RELIABILITY.tasks[1]!, id: "all-trials-passed" }],
+    };
+    expect(run.taskCount).toBe(run.tasks.length);
+    expect(run.passCount).toBe(run.tasks.filter((task) => task.outcome === "passed").length);
+    expect(run.statistics.successRateCI!.mean).toBe(run.passCount / run.taskCount);
+    for (const task of run.tasks) {
+      expect(task.passRateCI!.mean).toBe(task.trials!.passed / task.trials!.total);
+    }
+    await page.route("**/api/v1/lab/runs", (route) => route.fulfill({ json: [summary] }));
+    await page.route(/\/api\/runs\/[^/]+$/, (route) => route.fulfill({ json: run }));
+    await page.goto("/#/lab/history");
+    await page.getByRole("button", { name: "saved-scenario", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("tab", { name: "Recorded evidence" }).click();
+    await expect(dialog).toContainText("Source origin: eval source-evaluation");
+    await expect(dialog).toContainText("2/3 passed");
+    await expect(dialog).toContainText("cached source evidence");
+    await expect(dialog).toContainText("Prompt judging unassessed:");
+    const evidenceScreenshot = "../docs/images/dashboard-lab-evidence.png";
+    await page.screenshot({ path: evidenceScreenshot, animations: "disabled", fullPage: true });
+    await copyFile(evidenceScreenshot, "../site/public/images/dashboard-lab-evidence.png");
   });
 });
 
@@ -120,12 +169,17 @@ test.describe("Screenshots", () => {
 
   test("evidence-tab", async ({ page }) => {
     await page.route(/\/api\/runs\/run-001$/, (route) =>
-      route.fulfill({ json: evidenceDetail() }),
+      route.fulfill({ json: {
+        ...evidenceDetail(),
+        regradeUsage: promptJudging.regradeUsage,
+        tasks: [...evidenceDetail().tasks, promptJudging.tasks[0]!],
+      } }),
     );
     await page.goto("/#/runs/run-001");
     await page.getByRole("button", { name: "Evidence", exact: true }).click();
     await expect(page.getByTestId("evidence-view")).toContainText("Source origin:");
     await expect(page.getByTestId("evidence-view")).toContainText("Run 2");
+    await expect(page.getByTestId("evidence-view")).toContainText("a-judge · run · submitted");
     await page.setViewportSize({ width: 1280, height: 1050 });
     for (const path of ["../docs/images/explore/evidence-tab.png", "../site/public/images/explore/evidence-tab.png"]) {
       await page.screenshot({ path, animations: "disabled", fullPage: true });

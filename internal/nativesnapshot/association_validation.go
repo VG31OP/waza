@@ -231,6 +231,14 @@ func boundAssociationStrings(ctx context.Context, raw []byte) error {
 }
 
 func detachProjectionInput(ctx context.Context, capture *projectionCapture) (detachedProjectionInput, error) {
+	input, err := projectionInput(ctx, capture)
+	if err != nil {
+		return detachedProjectionInput{}, err
+	}
+	return validateProjectionInput(ctx, input)
+}
+
+func projectionInput(ctx context.Context, capture *projectionCapture) (detachedProjectionInput, error) {
 	if ctx == nil {
 		return detachedProjectionInput{}, fmt.Errorf("native projection detach requires context")
 	}
@@ -240,9 +248,9 @@ func detachProjectionInput(ctx context.Context, capture *projectionCapture) (det
 	if capture == nil || capture.prepared == nil {
 		return detachedProjectionInput{}, fmt.Errorf("missing associated native capture; capture with associations first")
 	}
-	return validateProjectionInput(ctx, detachedProjectionInput{
+	return detachedProjectionInput{
 		canonical: capture.prepared.canonical, snapshot: capture.prepared.seal, sources: capture.prepared.sources,
-		associations: capture.associations})
+		associations: capture.associations}, nil
 }
 
 func validateProjectionInput(ctx context.Context, input detachedProjectionInput) (detachedProjectionInput, error) {
@@ -280,11 +288,12 @@ func validateProjectionInput(ctx context.Context, input detachedProjectionInput)
 			if err := ctx.Err(); err != nil {
 				return fail(err)
 			}
+			executableLimit, totalLimit := sourceByteLimits(ctx)
 			limit := maxSourceBytes
 			if slices.Contains(source.Roles, "executable") {
-				limit = maxExecutableBytes
+				limit = executableLimit
 			}
-			if len(source.Bytes) > limit || len(source.Bytes) > maxTotalBytes-totalBytes {
+			if len(source.Bytes) > limit || len(source.Bytes) > totalLimit-totalBytes {
 				return fail(fmt.Errorf("native retained source byte limit exceeded"))
 			}
 			totalBytes += len(source.Bytes)

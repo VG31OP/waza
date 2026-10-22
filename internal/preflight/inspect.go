@@ -12,6 +12,7 @@ import (
 	"github.com/microsoft/waza/internal/copilotconfig"
 	"github.com/microsoft/waza/internal/dataset"
 	"github.com/microsoft/waza/internal/graders"
+	"github.com/microsoft/waza/internal/judgeevidence"
 	"github.com/microsoft/waza/internal/mcpmock"
 	"github.com/microsoft/waza/internal/models"
 	"github.com/microsoft/waza/internal/orchestration"
@@ -82,6 +83,13 @@ func Inspect(evalPath string, opts Options) *Report {
 			r.add("task.id", Invalid, source, task.TestID, "", "Task ID is empty or duplicated.", "Assign a unique nonempty ID across all discovered tasks, including disabled tasks.")
 		}
 		ids[task.TestID] = true
+		if models.UsesJudgeEvidence(spec.Graders, task) {
+			if _, err := judgeevidence.Selection(spec.Graders, task); err != nil {
+				r.add("grader.evidence_selection", Invalid, source, task.TestID, "",
+					"Required judge evidence selections conflict, exceed limits, or are unsupported on this platform.",
+					"Use at most 64 exact selected files/exclusions, remove evaluator-only conflicts, and use Linux/macOS for selected-file capture.")
+			}
+		}
 		fixtures := contextDir
 		if task.ContextRoot != "" {
 			// The existing runner uses task context_dir as supplied, relative to cwd.
@@ -147,12 +155,17 @@ func discoverTasks(r *Report, spec *models.EvalSpec, base string) ([]*models.Tes
 			for range validation.ValidateTaskBytes(data) {
 				r.add("task.schema", Invalid, path, "", "", "Task does not match the embedded schema.", "Check id, name, inputs, grader configuration, and requirement metadata against schemas/task.schema.json.")
 			}
+			faultErr := models.ValidateTaskFaultSources(data, spec.SchemaVersion)
 			task, err := models.ParseTestCaseOffline(data, path, graders.ValidateConfig)
 			if err != nil {
+				err = errors.Join(err, faultErr)
 				r.add("task.configuration", schemaState(err), path, "", "", "Task could not be decoded or validated offline.", "Check prompt/prompt_file, paths, self-contained grader schemas, checkpoints, responder settings, and mocks.")
 				addMixedExternalDiagnostic(r, err, path)
 				r.Complete = false
 				continue
+			}
+			if faultErr != nil {
+				r.add("task.version", Invalid, path, task.TestID, "", "Task mock sequences require explicit enclosing scenario schemaVersion 2.0.", "Select schemaVersion 2.0 with a scenario, or use legacy single responses.")
 			}
 			if err := task.ValidateForExecutor(spec.Config.EngineType); err != nil {
 				r.add("task.executor", Invalid, path, task.TestID, "", "Task settings are incompatible with the configured executor.", "Use copilot-sdk for command mocks and explicit judge reasoning effort.")
@@ -207,7 +220,7 @@ func inspectMCP(r *Report, spec *models.EvalSpec, base string) {
 	for _, mock := range spec.MCPMocks {
 		mocked[strings.TrimSpace(mock.Name)] = true
 		state := Verified
-		cfg, err := mcpmock.FromEvalConfigOffline(mock, base)
+		cfg, err := mcpmock.FromEvalConfigOfflineWithVersion(mock, base, spec.SchemaVersion)
 		if err != nil {
 			state = r.schemaFailureState(err)
 			r.add("mock.mcp", state, r.Source, "", "", "MCP mock fixtures or matching configuration could not be verified.", "Check fixture files, tool responses, regexes, and self-contained match_schema references.")
@@ -395,6 +408,11 @@ func inspectTask(r *Report, task *models.TestCase, spec *models.EvalSpec, source
 		for _, response := range mock.Responses {
 			if response.Fixture != "" {
 				checkFile(r, filepath.Join(base, response.Fixture), source, task.TestID, "mock.command_fixture")
+			}
+			for _, step := range response.Sequence {
+				if step.Fixture != "" {
+					checkFile(r, filepath.Join(base, step.Fixture), source, task.TestID, "mock.command_fixture")
+				}
 			}
 		}
 		state := Verified

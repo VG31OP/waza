@@ -59,7 +59,7 @@ jobs:
               - 'README.md'
               - 'registry.json'
               - 'internal/models/outcome.go'
-              - 'schemas/eval.schema.json'
+              - 'schemas/**'
               - '.github/workflows/site-ci.yml'
               - '.github/workflows/pages.yml'
             examples:
@@ -78,7 +78,7 @@ jobs:
 
       - name: Setup Node
         if: steps.filter.outputs.site == 'true' || github.event_name == 'push'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22.19.0'
           cache: npm
@@ -92,6 +92,10 @@ jobs:
         if: steps.filter.outputs.site == 'true' || github.event_name == 'push'
         run: cd site && npm run build
 
+      - name: Typecheck chat and test public metadata
+        if: steps.filter.outputs.site == 'true' || github.event_name == 'push'
+        run: cd site && npm run test:chat-types && npm run test:chat-metadata && npm run test:chat-contract
+
       - name: Install Chromium for site regression tests
         if: steps.filter.outputs.site == 'true' || github.event_name == 'push'
         run: cd site && npx --no-install playwright install --with-deps chromium
@@ -103,9 +107,15 @@ jobs:
         env:
           CI: 'true'
 
+      - name: Test optional chat with mocked service and bot protection
+        if: steps.filter.outputs.site == 'true' || github.event_name == 'push'
+        run: cd site && npm run test:private-chat && npm run test:chat -- --project=chromium --retries=0 && npm run test:chat-unavailable -- --project=chromium --retries=0
+        env:
+          CI: 'true'
+
       - name: Upload site test evidence
         if: always() && steps.tests.outcome != 'skipped' && steps.tests.outcome != ''
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: site-chromium-${{ github.run_id }}
           path: |
@@ -145,7 +155,7 @@ jobs:
           cache-dependency-path: go.sum
 
       - name: Setup Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22.19.0'
           cache: npm

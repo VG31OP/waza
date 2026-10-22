@@ -58,6 +58,12 @@ dependency. The separate mandatory
 cases against retained exact source bytes without Git or historical ancestry.
 Checkout tests do not certify Windows durable collection writers.
 
+The native-snapshot original-capture oracle compiles its checksum-pinned source
+overlay once per package test process. Only the executable is reused: every
+capture launches a fresh process against the current fixture roots and writes
+a separate output artifact. `TestG2OriginalOracleReusesOnlyCompilation` checks
+changed prompt bytes and different roots without caching captured results.
+
 ## Fixed artifacts and repeatability
 
 `internal/testdata/compatibility/v1/` owns the versioned evals, task, all-grader
@@ -87,7 +93,7 @@ known-field types/constraints. Do not infer a task major-version policy from
 the eval/result policy. Eval/result versionless inputs default to the current
 v1 reader version (`1.4`); explicit same-major versions load, cross-major versions
 require migration. New evaluations and regrades independently write result
-version `1.6`; reading/re-saving historical inputs keeps their declared version
+version `1.7`; reading/re-saving historical inputs keeps their declared version
 and never invents reliability fields. Snapshot versioning is independent of
 result versioning.
 
@@ -111,7 +117,7 @@ stripped from those assertions.
 The frozen `cmd/waza/testdata/compatibility-run-1.4.json` oracle was verified by executing
 the CLI built from an isolated `git archive` of baseline `04e7b4c6` against
 the fixed eval/task inputs. The current CLI process test compares each full raw
-JSON artifact against `compatibility-run-1.6.json`: a separate expected writer
+JSON artifact against `compatibility-run-1.7.json`: a separate expected writer
 artifact differing only in the explicitly advanced result version. A regression
 asserts that this is the only difference; neither schema versions nor reliability
 fields are added to the normalization allowlist. Historical corpus files and the
@@ -163,6 +169,30 @@ regression test, not a new organizational assignment.
 | `gate` | 0 pass, 1 regression/task-set policy, 2 golden failure, 3 configuration error |
 | `grade` | Emits JSON `passed: false` for a failed verdict but currently exits 0; consumers must inspect the verdict. This is reporting, not the CI gate. |
 | `replay` | 0 consistency pass, 1 inconsistency/divergence; configuration errors use the normal error exit |
+
+## Explicit native release-policy addition
+
+Native Copilot collection is additive and requires explicit
+`--collector native-copilot` selection on both `compare-plan` and
+`compare-collect`. The mock collector remains the default, and ordinary
+`compare`/`gate` behavior and exits are unchanged unless a release policy and
+collection directory are explicitly selected.
+
+Native planning writes a `waza.release-native-policy` version `1.0` envelope
+containing the core policy protocol version `1.0`, native task profile version
+`2.0`, source-capture digest and required core
+`collection_profile: "copilot_sdk_single_turn_text_v1"` discriminator. Frozen
+core-only readers reject both the envelope and the extracted core policy with
+that unknown discriminator; stripping the wrapper does not make native policy
+legacy-compatible. The public native 2.0 adapter bounds source, evaluator,
+capture-wire, attempt-descriptor, request, path and tape sizes; those bounds do
+not change existing private 1.0 bounds. Oversized native payloads/tapes fail
+explicitly. Operationally incomplete native collection returns nonzero even
+after core publication, with the cause in `native-stop.json`; an API collection
+item's `error` can coexist with its attempts. Native collection can incur
+provider usage and durable creation is limited to Linux/macOS. The
+compatibility corpus remains offline and does not invoke this paid-capable
+producer.
 
 ## Three sanitized workflows
 

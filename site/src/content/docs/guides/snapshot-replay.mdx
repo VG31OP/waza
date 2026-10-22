@@ -10,9 +10,10 @@ explicitly configured result storage still uploads results, including evidence
 metadata, but does not fetch or upload the separate snapshot files. See
 [storage and portable evidence](/waza/guides/azure-storage/#portable-evidence).
 
-**Upcoming/main-only:** selected-file capture/regrade and new ordinary evidence
-producers require a current source build, not stable `v0.38.10`.
-See [availability and source prerequisites](../../reference/releases/).
+**Available in v0.39.0:** selected-file capture/regrade and ordinary evidence
+producers are included in the published standalone release. Capture remains
+opt-in, and selected-file private publication retains its Linux/macOS limits.
+See [availability and platform limits](../../reference/releases/).
 Replay never reruns a changed agent or the graders.
 
 ## Operation capabilities
@@ -59,11 +60,26 @@ snapshots retain historical metadata-only writer routing; existing nonempty
 file snapshots still use private publication. On unsupported platforms, selected
 publication returns an explicit error instead of falling back to ordinary output.
 
+## Frozen prompt judging is separate
+
+Final prompt graders can opt into
+[evidence-backed independent judging](/waza/guides/graders/#evidence-backed-independent-judging).
+The bounded `runs[].judge_evidence` bundle persists directly in results, without
+requiring `--snapshot`. A separately requested snapshot `1.2` references its
+already frozen digest as `judgeEvidenceSHA256`; post-grader snapshot workspace
+observations are not replacements for the files actually supplied to a judge.
+Ordinary snapshots keep version `1.1`.
+
+Evidence-only `waza grade` verifies that result bundle and makes new judge-model
+calls without the actor workspace. It does not follow snapshot paths or resume
+the actor. `replay` remains an offline consistency check, and the explicit
+file-only `--evidence-snapshot` operation does not perform model judging.
+
 ## What's recorded
 
 Snapshot schema **`1.1`** carries a separately versioned evidence manifest
 **`1.0`**. Missing-version defaults for legacy eval/results readers remain
-**`1.4`**, while newly generated results use result schema **`1.6`**.
+**`1.4`**, while newly generated results use result schema **`1.7`**.
 Task YAML has no independent schema-version field or default; legacy snapshots
 and results still load. Raw manifest JSON must satisfy the full embedded
 evidence schema, including required members and their types, before decoded

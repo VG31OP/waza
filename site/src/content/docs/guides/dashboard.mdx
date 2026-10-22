@@ -40,12 +40,32 @@ Mock observations are harness evidence, not agent quality; source binding is
 local consistency, not authenticated provenance. See
 [controlled comparisons](/waza/guides/controlled-comparisons/).
 
-This view intentionally preserves **base 1.0** decisions: required assurance
-remains nonpassing even when independent assurance artifacts are present.
-Only explicit outer CLI assessment with `--assurance-contract`, current per-arm
-inputs and fresh qualification/regrading can pass. The dashboard does not adopt
-stored report pass labels, authenticate reviewers or expose an outer-profile
-pass as a base decision.
+For selected native collections, optional `decision.native` data exposes the
+profile/version and each attempt's key, status, category/error, output
+availability, observed event/accounting models, usage completeness and
+lifecycle phases. Runtime version and provider currency remain unavailable;
+native assurance is unsupported. Collection errors are preserved alongside
+attempts, including an operational error after core artifacts were published;
+`native-stop.json` retains the stop cause. JSON export must preserve these
+optional observations and errors rather than turning an incomplete collection
+into a success.
+
+![Native release evidence view with recovered attempts and unavailable values](https://raw.githubusercontent.com/microsoft/waza/main/docs/images/native-release-evidence.png)
+
+*Deterministic SDK-fake illustration of a nonpassing golden-veto decision.
+Runtime version and provider currency are unavailable; native assurance is
+unsupported. This screenshot demonstrates rendering, not paid/live execution
+or model quality. Collection errors remain alongside attempts and are preserved
+in JSON export.*
+
+For legacy/mock collections, this view intentionally preserves **base 1.0**
+decisions: required assurance remains nonpassing even when independent
+assurance artifacts are present. Only explicit outer CLI assessment with
+`--assurance-contract`, current per-arm inputs and fresh qualification/regrading
+can pass. A selected native collection can pass its supported base decision
+within the bounded profile, but it cannot satisfy required assurance. The
+dashboard does not adopt stored report pass labels, authenticate reviewers or
+expose an outer-profile pass as a base decision.
 
 ### Dashboard Overview
 
@@ -108,6 +128,25 @@ This tab does **not** fetch local paths, download captured contents, upload
 evidence, call a model, or reconstruct a workspace. See
 [Snapshot & Replay](/waza/guides/snapshot-replay/) for bounded capture,
 offline consistency checks, and verified file-only regrading.
+
+#### Prompt judging
+
+The existing **Evidence** tab includes a distinct **Prompt judging** subsection,
+not another evidence page. For every task/run/attempt it shows frozen bundle
+identity, coverage/counts, fixed limits and each bound grader's delivery digest,
+state (`prepared`, `submitted`, `failed`), purpose, requested model, session,
+elapsed time, safe diagnostics and observed usage. Historical absence remains
+unassessed; unavailable evidence and invalid/unbound observations are explicit.
+
+Only an actual recorded grade callback marks submission observed. Inspection is
+always not observable: inline exposure is not proof that a model read every item.
+Reported zero AI credits remains zero; missing credits are unavailable. Current
+regrade usage is separate from unchanged original execution billing.
+**Export prompt judging metadata** downloads these verified metadata rows as JSON,
+not file contents, evidence bodies, file paths, rendered prompts or raw grader
+details. It does not call a model or fetch local artifacts.
+See [evidence-backed judging](/waza/guides/graders/#evidence-backed-independent-judging)
+for the bounded saved-result contract and authenticity/accuracy limitations.
 
 #### Current-evaluation AI Credits
 

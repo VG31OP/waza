@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -22,6 +23,8 @@ import (
 	"github.com/microsoft/waza/internal/failures"
 	"github.com/microsoft/waza/internal/graders"
 	"github.com/microsoft/waza/internal/hooks"
+	"github.com/microsoft/waza/internal/judgeevidence"
+	"github.com/microsoft/waza/internal/mcpmock"
 	"github.com/microsoft/waza/internal/models"
 	"github.com/microsoft/waza/internal/responder"
 	"github.com/microsoft/waza/internal/skill"
@@ -54,6 +57,7 @@ type EvalRunner struct {
 	requestFiles     RequestFiles
 	requestInputs    RequestInputs
 	engine           execution.AgentEngine
+	evidenceExecutor graders.Executor
 	verbose          bool
 	controlledOutput func(string)
 
@@ -291,7 +295,9 @@ func (r *EvalRunner) notifyProgress(event ProgressEvent) {
 // RunBenchmark executes the entire benchmark
 // If Baseline is enabled, runs twice: skills-enabled and skills-disabled
 func (r *EvalRunner) RunBenchmark(ctx context.Context) (*models.EvaluationOutcome, error) {
-
+	if err := mcpmock.ValidateEvalMocks(r.cfg.Spec().MCPMocks, r.cfg.SpecDir(), r.cfg.Spec().SchemaVersion); err != nil {
+		return nil, fmt.Errorf("MCP mock admission: %w", err)
+	}
 	if err := r.engine.Initialize(ctx); err != nil {
 		return nil, err
 	}
@@ -374,7 +380,6 @@ func (r *EvalRunner) runNormalBenchmark(ctx context.Context) (*models.Evaluation
 	if len(testCases) == 0 {
 		return nil, fmt.Errorf("no test cases found")
 	}
-
 	r.notifyProgress(ProgressEvent{
 		EventType:  EventBenchmarkStart,
 		TotalTests: len(testCases),
@@ -670,6 +675,9 @@ func (r *EvalRunner) loadTestCasesFromFiles() ([]*models.TestCase, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to load test case %s: %w", path, err)
 		}
+		if err := models.ValidateTaskFaultSources(tc.SourceBytes(), spec.SchemaVersion); err != nil {
+			return nil, fmt.Errorf("invalid test case %s: task fault sources: %w", path, err)
+		}
 		if err := tc.ValidateForExecutor(spec.Config.EngineType); err != nil {
 			return nil, fmt.Errorf("invalid test case %s: %w", path, err)
 		}
@@ -914,7 +922,7 @@ func (r *EvalRunner) runTest(ctx context.Context, tc *models.TestCase, testNum, 
 	if r.cache != nil && spec.Scenario != "" {
 		fmt.Fprintf(os.Stderr, "[WARN] Scenario caching disabled for test %q: external workflow dependencies are not fully fingerprinted\n", tc.DisplayName)
 	}
-	if r.cache != nil && spec.Scenario == "" {
+	if r.cache != nil && spec.Scenario == "" && !models.UsesJudgeEvidence(spec.Graders, tc) {
 		cacheKey, err := cache.CacheKey(spec, tc, r.cfg.FixtureDir())
 		if err == nil {
 			if cachedOutcome, found := r.cache.Get(cacheKey); found {
@@ -1064,8 +1072,12 @@ func (r *EvalRunner) executeAttemptWithRequest(ctx context.Context, tc *models.T
 	var req *execution.ExecutionRequest
 	var resp *execution.ExecutionResponse
 	var err error
+	var frozenJudgeEvidence *models.JudgeEvidence
+	var promptJudging []models.PromptJudgeObservation
 	diagnosticCategory := "setup"
 	returnWithArtifacts := func(run models.RunResult) models.RunResult {
+		run.JudgeEvidence = frozenJudgeEvidence
+		run.PromptJudging = promptJudging
 		if attempt > 0 {
 			run.Attempts = attempt
 		}
@@ -1086,6 +1098,7 @@ func (r *EvalRunner) executeAttemptWithRequest(ctx context.Context, tc *models.T
 				run.FinalOutput = resp.FinalOutput
 			}
 		}
+		run.DependencyModes = configuredDependencyModes(req, r.cfg.Spec().MCPMocks)
 		r.captureSnapshot(tc, req, resp, &run, diagnosticCategory)
 		run.RequirementExplanations = evidence.ExplainRequirements(r.cfg.Spec(), tc, &run)
 		r.captureFailureArtifacts(&run)
@@ -1093,6 +1106,10 @@ func (r *EvalRunner) executeAttemptWithRequest(ctx context.Context, tc *models.T
 	}
 
 	// Prepare execution request
+	if controlled && models.UsesJudgeEvidence(r.cfg.Spec().Graders, tc) {
+		return returnWithArtifacts(models.RunResult{RunNumber: runNum, Status: models.StatusError,
+			ErrorMsg: "evidence_context is not supported by controlled execution"})
+	}
 	req = prepared
 	if req == nil {
 		req, err = r.buildExecutionRequest(tc)
@@ -1213,8 +1230,12 @@ func (r *EvalRunner) executeAttemptWithRequest(ctx context.Context, tc *models.T
 	}
 	if r.verbose {
 		for _, invocation := range commandInvocations {
-			fmt.Fprintf(os.Stderr, "Command mock: %s %q (exit %d)\n",
-				invocation.Command, strings.Join(invocation.Args, " "), invocation.ExitCode)
+			exit := "unavailable"
+			if invocation.ExitCode != nil {
+				exit = strconv.Itoa(*invocation.ExitCode)
+			}
+			fmt.Fprintf(os.Stderr, "Command mock: %s %q (exit %s)\n",
+				invocation.Command, strings.Join(invocation.Args, " "), exit)
 		}
 	}
 
@@ -1228,6 +1249,35 @@ func (r *EvalRunner) executeAttemptWithRequest(ctx context.Context, tc *models.T
 
 	// Build validation context
 	vCtx := r.buildGraderContext(tc, resp, sdkEvents)
+	if !r.skipGraders && models.UsesJudgeEvidence(r.cfg.Spec().Graders, tc) {
+		selection, selectionErr := judgeevidence.Selection(r.cfg.Spec().Graders, tc)
+		if selectionErr != nil {
+			return returnWithArtifacts(models.RunResult{RunNumber: runNum, Prompt: req.Message,
+				Status: models.StatusError, ErrorMsg: selectionErr.Error()})
+		}
+		origin, originErr := snapshot.CaptureOrigin(snapshot.CaptureInput{EvalID: r.evalRunID, Task: tc,
+			Run: &models.RunResult{RunNumber: runNum, Attempts: attempt}})
+		mode := "unknown"
+		switch r.engine.(type) {
+		case *execution.CopilotEngine:
+			mode = "live"
+		case *execution.MockEngine:
+			mode = "mock"
+		}
+		frozenJudgeEvidence = judgeevidence.Capture(judgeevidence.CaptureInput{
+			Origin: origin, Task: req.Message, Output: resp.FinalOutput,
+			OutputPresent: resp.Success && resp.ErrorMsg == "" && originErr == nil,
+			Events:        sdkEvents, Files: resp.JudgeFiles, Selection: selection, ExecutionMode: mode,
+		})
+		vCtx.JudgeEvidence, vCtx.JudgeOrigin = frozenJudgeEvidence, origin
+		vCtx.EvidenceExecutor = r.evidenceExecutor
+		if vCtx.EvidenceExecutor == nil {
+			vCtx.EvidenceExecutor = execution.NewEvidenceJudgeExecutor()
+		}
+		vCtx.RecordPromptJudging = func(observation models.PromptJudgeObservation) {
+			promptJudging = append(promptJudging, observation)
+		}
+	}
 
 	var gradersResults map[string]models.GraderResults
 	if r.skipGraders {
@@ -1542,6 +1592,22 @@ func (r *EvalRunner) buildExecutionRequest(tc *models.TestCase) (*execution.Exec
 	if err != nil {
 		return nil, err
 	}
+	mcpServers, err := copilotconfig.ResolveMCPServersWithVersion(spec.Config.ServerConfigs, spec.MCPMocks, r.cfg.SpecDir(), spec.SchemaVersion, func(format string, args ...any) {
+		fmt.Fprintf(os.Stderr, format, args...)
+	})
+	if err != nil {
+		return nil, err
+	}
+	var captureJudgeFiles func(string) *models.JudgeFileCapture
+	if !r.skipGraders && models.UsesJudgeEvidence(spec.Graders, tc) {
+		selection, err := judgeevidence.Selection(spec.Graders, tc)
+		if err != nil {
+			return nil, err
+		}
+		captureJudgeFiles = func(root string) *models.JudgeFileCapture {
+			return judgeevidence.CaptureFiles(root, selection)
+		}
+	}
 
 	return &execution.ExecutionRequest{
 		Message:           tc.Stimulus.Message,
@@ -1558,13 +1624,14 @@ func (r *EvalRunner) buildExecutionRequest(tc *models.TestCase) (*execution.Exec
 		SuppressSkillBody: !spec.Config.ShouldInjectSkillBody(),
 		TriggerSkillRouting: spec.Config.ShouldTriggerSkillRouting() &&
 			execution.IsSkillAvailable(resolvedSkillPaths, spec.SkillName),
-		MCPServers:          convertMCPServers(spec.Config.ServerConfigs, spec.MCPMocks, r.cfg.SpecDir()),
+		MCPServers:          mcpServers,
 		CommandMocks:        effectiveCommandMocks(tc, spec),
 		CommandMocksBaseDir: r.cfg.SpecDir(),
 		FirstEventTimeout:   r.firstEventTimeout(tc),
 		ToolPolicy:          resolveToolPolicy(fm),
 		ModelID:             spec.Config.ModelID,
 		ReasoningEffort:     spec.Config.ReasoningEffort,
+		CaptureJudgeFiles:   captureJudgeFiles,
 	}, nil
 }
 
@@ -1573,6 +1640,34 @@ func effectiveCommandMocks(tc *models.TestCase, spec *models.EvalSpec) []models.
 		return *tc.CommandMocks
 	}
 	return spec.CommandMocks
+}
+
+func configuredDependencyModes(req *execution.ExecutionRequest, mcpMocks []models.MCPMockConfig) []models.DependencyMode {
+	if req == nil {
+		return nil
+	}
+	mockNames := make(map[string]bool, len(mcpMocks))
+	for _, mock := range mcpMocks {
+		mockNames[strings.TrimSpace(mock.Name)] = true
+	}
+	modes := make([]models.DependencyMode, 0, len(req.MCPServers)+len(req.CommandMocks))
+	for name := range req.MCPServers {
+		mode := "live"
+		if mockNames[name] {
+			mode = "mocked"
+		}
+		modes = append(modes, models.DependencyMode{Kind: "mcp", Name: name, Mode: mode})
+	}
+	for _, mock := range req.CommandMocks {
+		modes = append(modes, models.DependencyMode{Kind: "cli", Name: mock.Name, Mode: "mocked"})
+	}
+	sort.Slice(modes, func(i, j int) bool {
+		if modes[i].Kind != modes[j].Kind {
+			return modes[i].Kind < modes[j].Kind
+		}
+		return modes[i].Name < modes[j].Name
+	})
+	return modes
 }
 
 func (r *EvalRunner) taskSkillPaths(tc *models.TestCase) []string {
@@ -1702,6 +1797,7 @@ func (r *EvalRunner) executeFollowUps(ctx context.Context, tc *models.TestCase, 
 		resp.DurationMs += followResp.DurationMs
 		resp.FinalOutput = followResp.FinalOutput
 		resp.WorkspaceFiles = followResp.WorkspaceFiles
+		resp.JudgeFiles = followResp.JudgeFiles
 		mergeToolPolicyResult(resp, followResp)
 		execution.MergeResponseUsage(resp, followResp)
 
@@ -1850,6 +1946,7 @@ func (r *EvalRunner) sendResponderReply(ctx context.Context, tc *models.TestCase
 	resp.DurationMs += followResp.DurationMs
 	resp.FinalOutput = followResp.FinalOutput
 	resp.WorkspaceFiles = followResp.WorkspaceFiles
+	resp.JudgeFiles = followResp.JudgeFiles
 	mergeToolPolicyResult(resp, followResp)
 	execution.MergeResponseUsage(resp, followResp)
 	return true
@@ -2123,8 +2220,8 @@ func containsPathTraversal(path string) bool {
 
 // convertMCPServers converts the eval YAML mcp_servers config (map[string]any)
 // into the copilot SDK's MCPServerConfig type. Returns nil if no servers configured.
-func convertMCPServers(serverConfigs map[string]any, mocks []models.MCPMockConfig, baseDir string) map[string]copilot.MCPServerConfig {
-	return copilotconfig.ConvertMCPServersWithMocks(serverConfigs, mocks, baseDir, func(format string, args ...any) {
+func convertMCPServers(serverConfigs map[string]any, mocks []models.MCPMockConfig, baseDir, schemaVersion string) map[string]copilot.MCPServerConfig {
+	return copilotconfig.ConvertMCPServersWithVersion(serverConfigs, mocks, baseDir, schemaVersion, func(format string, args ...any) {
 		fmt.Fprintf(os.Stderr, format, args...)
 	})
 }
@@ -2152,6 +2249,7 @@ func (r *EvalRunner) buildGraderContext(tc *models.TestCase, resp *execution.Exe
 		ToolEvents:         buildToolEvents(sdkEvents),
 		CommandInvocations: resp.CommandInvocations,
 		Executor:           r.engine,
+		JudgeModelFallback: r.cfg.Spec().Config.ModelID,
 		RecordUsage: func(digest models.SessionDigest) {
 			resp.GraderSessions = append(resp.GraderSessions, digest)
 			if digest.SessionID != "" && digest.SessionID == resp.SessionID {

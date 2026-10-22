@@ -45,8 +45,9 @@ export default defineConfig({
 					label: 'Guides',
 					items: [
 						{ label: 'Writing Eval Specs', slug: 'guides/eval-yaml' },
+						{ label: 'Ask Waza (Optional)', slug: 'guides/docs-assistant' },
 						{ label: 'Offline Eval Preflight', slug: 'guides/preflight' },
-						{ label: 'Private Fault Harness', slug: 'guides/private-fault-fixtures' },
+						{ label: 'Dependency Recovery', slug: 'guides/dependency-recovery' },
 
 						{ label: 'Controlled comparisons', slug: 'guides/controlled-comparisons' },
 						{ label: 'Preserving Existing Workflows', slug: 'guides/compatibility' },
@@ -73,7 +74,14 @@ export default defineConfig({
 						{ label: 'YAML Schema', slug: 'reference/schema' },
 						{ label: 'Rubric Library', slug: 'reference/rubrics' },
 						{ label: 'Schema Changes', slug: 'reference/schema-changes' },
-						{ label: 'Releases', slug: 'reference/releases' },
+						{
+							label: 'Releases',
+							items: [
+								{ label: 'Overview & downloads', slug: 'reference/releases' },
+								{ label: 'Waza v0.39.0', slug: 'releases/v0-39-0' },
+								{ label: 'Introducing Dashboard Lab', slug: 'releases/dashboard-lab' },
+							],
+						},
 					],
 				},
 				{

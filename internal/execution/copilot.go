@@ -65,6 +65,7 @@ type CopilotEngine struct {
 
 	commandMocksMu      sync.Mutex
 	commandMockSessions map[string]*commandmock.Session
+	disableCommandMocks bool
 
 	shutdownOnce sync.Once
 	shutdownErr  error
@@ -171,6 +172,11 @@ type CopilotEngineBuilder struct {
 
 type CopilotEngineBuilderOptions struct {
 	NewCopilotClient func(clientOptions *copilot.ClientOptions) CopilotClient
+	// OwnClient selects a fresh production client instead of SharedClient.
+	OwnClient bool
+	// DisableCommandMocks omits the shim registry and rejects command mocks.
+	// Requires OwnClient or a supplied NewCopilotClient factory.
+	DisableCommandMocks bool
 	// DiagnosticObserver enables sanitized, failure-retaining lifecycle diagnostics.
 	// Calls are serialized outside engine state locks. Observers must not reenter
 	// engine lifecycle methods (including Execute, Initialize, DeleteSession, Shutdown).
@@ -181,21 +187,37 @@ type CopilotEngineBuilderOptions struct {
 //   - defaultModelID - used if no model ID is specified in session creation. Can be blank, which means the copilot
 //     CLI will choose its own fallback model.
 //
-// When `options.NewCopilotClient` is nil (the production path), the engine is
+// Unless OwnClient is selected, when `options.NewCopilotClient` is nil the engine is
 // wired to the process-wide shared client returned by [SharedClient]. The
 // caller MUST invoke [ShutdownSharedClient] once at the top level after every
 // engine has been Shutdown — engines built on top of the shared client will
 // not stop it themselves. See docs/design/135-improve-concurrency.md (R2).
 //
-// When a `NewCopilotClient` factory is provided (test path), the engine
-// constructs its own client and stops it during Shutdown as before.
+// OwnClient resolves the same explicit/embedded CLI options for a fresh
+// production client. A supplied NewCopilotClient factory also selects ownership.
+// Both owned paths stop their client during Shutdown.
 func NewCopilotEngineBuilder(defaultModelID string, options *CopilotEngineBuilderOptions) *CopilotEngineBuilder {
 	var client CopilotClient
 	ownsClient := false
 	provider := providerFromEnv()
 	cliArgs := modelCLIArgs()
 
-	if options == nil || options.NewCopilotClient == nil {
+	disableCommandMocks := options != nil && options.DisableCommandMocks
+	if disableCommandMocks && !options.OwnClient && options.NewCopilotClient == nil {
+		client = &startupErrorClient{err: fmt.Errorf("disabling command mocks requires an owned Copilot client")}
+	} else if options != nil && options.OwnClient && options.NewCopilotClient == nil {
+		resolveOptions := sharedClientOptions
+		if disableCommandMocks {
+			resolveOptions = clientOptions
+		}
+		clientOptions, err := resolveOptions("error", cliArgs)
+		if err != nil {
+			client = &startupErrorClient{err: err}
+		} else {
+			client = newCopilotClient(clientOptions)
+		}
+		ownsClient = true
+	} else if options == nil || options.NewCopilotClient == nil {
 		// Production: share one SDK process across all engines + graders.
 		client = SharedClient(SharedClientOptions{CLIArgs: cliArgs})
 	} else {
@@ -218,6 +240,7 @@ func NewCopilotEngineBuilder(defaultModelID string, options *CopilotEngineBuilde
 			ownsClient:          ownsClient,
 			provider:            provider,
 			commandMockSessions: make(map[string]*commandmock.Session),
+			disableCommandMocks: disableCommandMocks,
 		},
 	}
 
@@ -333,13 +356,17 @@ func (e *CopilotEngine) ListModels(ctx context.Context) ([]copilot.ModelInfo, er
 }
 
 func (e *CopilotEngine) validateReasoningEffort(ctx context.Context, modelID, effort string) error {
-	if effort == "" || e.provider.enabled() {
+	return validateReasoningEffort(ctx, e.client, modelID, effort, e.provider.enabled())
+}
+
+func validateReasoningEffort(ctx context.Context, client CopilotClient, modelID, effort string, customProvider bool) error {
+	if effort == "" || customProvider {
 		return nil
 	}
 	if modelID == "" || modelID == "auto" {
 		return fmt.Errorf("reasoning effort %q requires an explicit model; select one with waza models", effort)
 	}
-	models, err := e.client.ListModels(ctx)
+	models, err := client.ListModels(ctx)
 	if err != nil {
 		return fmt.Errorf("checking reasoning effort %q for model %q: %w", effort, modelID, err)
 	}
@@ -374,6 +401,9 @@ func (e *CopilotEngine) Execute(ctx context.Context, req *ExecutionRequest) (*Ex
 func (e *CopilotEngine) execute(ctx context.Context, req *ExecutionRequest) (*ExecutionResponse, error) {
 	if req == nil {
 		return nil, fmt.Errorf("nil req was passed to CopilotEngine.Execute")
+	}
+	if e.disableCommandMocks && len(req.CommandMocks) != 0 {
+		return nil, fmt.Errorf("command mocks are disabled for this Copilot engine")
 	}
 
 	modelID, sourceDir, err := e.extractReqParams(req)
@@ -778,6 +808,10 @@ func (e *CopilotEngine) execute(ctx context.Context, req *ExecutionRequest) (*Ex
 	if !req.SkipWorkspaceCapture {
 		workspaceFiles = captureWorkspaceFiles(workspaceDir)
 	}
+	var judgeFiles *models.JudgeFileCapture
+	if req.CaptureJudgeFiles != nil {
+		judgeFiles = req.CaptureJudgeFiles(workspaceDir)
+	}
 
 	// Build response
 	e.captureUsage(ctx, sessionID, session, usageCollector, req.EphemeralSession && req.SessionID == "")
@@ -812,6 +846,7 @@ func (e *CopilotEngine) execute(ctx context.Context, req *ExecutionRequest) (*Ex
 		Success:            err == nil,
 		WorkspaceDir:       workspaceDir,
 		WorkspaceFiles:     workspaceFiles,
+		JudgeFiles:         judgeFiles,
 		CommandInvocations: commandMockSession.Invocations(), // Checkpoint graders run before task finalization.
 		SessionID:          sessionID,
 		Usage:              usage,

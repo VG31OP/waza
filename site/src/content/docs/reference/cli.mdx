@@ -5,11 +5,11 @@ description: Complete reference for all waza commands and flags.
 
 Complete reference for all `waza` CLI commands and their options.
 
-**Version boundary (October 15, 2026):** this reference follows main.
-Published standalone `v0.38.10` is separate. Scenario flags, preflight,
+**Version boundary (October 20, 2026):** published standalone `v0.39.0`
+includes scenario flags, preflight,
 selected-file evidence/regrade, assurance profiles, controlled policy commands
-and `serve --lab` are upcoming/main-only. Build source before those sections;
-`waza update` installs releases, not main. See the
+and `serve --lab`. Install the release or run `waza update`; a source build is
+optional. Explicit opt-in and platform restrictions remain; see the
 [feature/platform matrix](../releases/#upcoming-main-only-capabilities).
 The azd extension is versioned separately; verify its own help rather than
 assuming prefix parity.
@@ -95,10 +95,9 @@ waza run [eval.yaml | skill-name | agent-name]
 
 ### Flags
 
-The private dependency-fault harness does not add a public `run` flag, automatic
-retry policy or finite-sequence runtime configuration. Its injected native
-dispatch tests do not certify SDK resume or platform stdio. See
-[Private Fault Harness](/waza/guides/private-fault-fixtures/).
+Finite MCP/CLI fault sequences are configured in scenario eval YAML, not through
+a `run` flag. They do not add an automatic retry policy or certify real CLI/MCP
+implementations. See [Dependency Recovery](/waza/guides/dependency-recovery/).
 
 | Flag | Short | Type | Default | Description |
 |------|-------|------|---------|-------------|
@@ -548,12 +547,14 @@ waza compare [results-1.json] [results-2.json] ...
 
 Selected policy assessment does not change default descriptive comparisons.
 Policy metadata in ordinary results is not enforcement, and older executables
-reject the new flags. Use `compare-plan` and `compare-collect` for the explicit
-offline mock/native-text producer; do not adopt historical outcomes.
-Internal native source/capture/slot/retry inspection does not add a public
-native producer or execution/durability/retry-permission authority. New private
-durable collection writers support Linux/macOS only; Windows reader checks
-do not certify writing.
+reject the new flags. `compare-plan` and `compare-collect` default to offline
+mock collection; explicitly pass `--collector native-copilot` to both to select
+the bounded Copilot SDK profile. It may incur provider usage and is limited to
+fixed named models, single turns, no skills, deny-all client tools and native
+text/string checks. It does not establish server isolation, authenticated
+assurance or provider/runtime versions. Native durable creation supports
+Linux/macOS only; Windows reader checks do not certify writing. Do not adopt
+historical outcomes as fresh evidence.
 See [controlled comparisons](/waza/guides/controlled-comparisons/).
 
 **Existing legacy JSON limitation:** when task sets differ, missing-task score
@@ -588,11 +589,13 @@ The section is suppressed when none of the compared files contain tool data, so 
 ## waza compare-plan
 
 Bind a mandatory fixed design and explicit requirements to inspected sources
-before collecting outcomes. Supported collection capability is offline
-mock/no-skills/native-text only; static metadata is not assurance.
+before collecting outcomes. Collection defaults to offline mock. Explicit
+`--collector native-copilot` selects the bounded Copilot SDK profile; static
+metadata is not assurance.
 
 | Flag | Description |
 |---|---|
+| `--collector` | Collection profile: `mock` (default, offline) or `native-copilot` (explicit, may incur provider usage). |
 | `--baseline-eval`, `--candidate-eval` | Required source eval YAML files. |
 | `--baseline-context-dir`, `--candidate-context-dir` | Cwd-relative context override; default is each eval directory's `fixtures`. |
 | `--design` | Required policy-1.0 design member JSON, with empty allocation; seed generated once. |
@@ -630,19 +633,23 @@ authenticated human review; test-only reviewed declarations are synthetic.
 Only mock/no-skills/native-text finite authored outputs are supported. Fresh
 exact offline1.0 reports for both arms, retained actual-response deterministic
 regrade and every base non-assurance condition are required for an outer pass.
-No live SDK, calibration, paid1.1/billing support or automatic paid validation.
+No live SDK assurance, calibration, paid1.1/billing support or automatic paid validation.
 Stored report pass labels are never adopted. The base API/dashboard intentionally
 remain nonpassing for required assurance. See the
 [independent profile lifecycle](/waza/guides/controlled-comparisons/#opt-in-separately-to-offline-assurance).
 
 ## waza compare-collect
 
-Collect fresh paired attempts under an explicit frozen policy. Sources are
-rechecked before BEGIN and every attempt; private frozen requests avoid mutable
-fixture rereads. Linux/macOS only for the new durable protocol.
+Collect fresh paired attempts under an explicit frozen policy. The default
+`mock` collector is offline. Explicitly select `--collector native-copilot` for
+the fixed-model, single-turn Copilot SDK profile, which may incur provider
+usage. Sources are rechecked before BEGIN and every attempt; private frozen
+requests avoid mutable fixture rereads. Native durable creation is Linux/macOS
+only.
 
 | Flag | Description |
 |---|---|
+| `--collector` | Collection profile: `mock` (default, offline) or `native-copilot` (explicit, may incur provider usage). |
 | `--baseline-eval`, `--candidate-eval` | Required exact source eval YAML files. |
 | `--baseline-context-dir`, `--candidate-context-dir` | Same context semantics used during planning. |
 | `--release-policy` | Required precollection policy. |
@@ -657,6 +664,15 @@ Source drift, unsupported capability, cancellation or persistence errors exit
 it separately with `compare` or `gate --release-policy --collection-dir`.
 The [offline example](/waza/guides/controlled-comparisons/) intentionally remains
 inconclusive; no default live/paid execution or adaptive stopping is enabled.
+The native profile supports no skills, deny-all client tools and native
+text/string checks only; hooks, MCP, repositories, cache, concurrency, resume,
+checkpoints, multiturn and other graders are unsupported. Usage limits use
+final observations and best-effort prestart checks, so in-flight overshoot is
+possible; they are not a hard spending cap. Runtime version, provider currency
+and ambiguous output presence remain unavailable.
+Operationally incomplete native collection exits nonzero even if core
+publication completed; inspect `native-stop.json` for the error, budget or
+currentness cause. The API collection item's `error` may coexist with attempts.
 Selected assurance additionally persists `assurance-contract.json`,
 `assurance.ndjson` actual-response rows and `assurance-ledger.json`. Sources,
 evaluator evidence and review inputs are rechecked after verification and before
@@ -756,7 +772,7 @@ Assessment rechecks current sources/evidence/review; stored report pass labels
 are not adopted. Use `--format json` for the machine-readable outer contract or
 the default human output. Selected assurance does not promise legacy
 markdown/GitHub Actions layouts. Its nonpass exit is `1`, not the legacy
-exit matrix below. No live SDK, calibration, paid1.1/billing support or automatic
+exit matrix below. No live SDK assurance, calibration, paid1.1/billing support or automatic
 paid validation is selected; old executables reject new command/unknown flags.
 
 ### Exit codes
@@ -918,11 +934,11 @@ the `eval.yaml`/`eval.yml` filename convention; JSON results are recognized by
 their artifact shape, including custom `.json` filenames.
 
 This legacy input/reader policy is separate from new result emission: current
-evaluations and regrades write results `1.6`. Task YAML has no independent version
+evaluations and regrades write results `1.7`. Task YAML has no independent version
 field. Historical result versions and missing reliability metadata are preserved
 when reading/re-saving; migration does not upgrade them.
 Compatibility reports select the current version by artifact type: eval `1.4`
-or result writer `1.6`. Missing/`1.4` result versions are explicitly labeled as
+or result writer `1.7`. Missing/`1.4` result versions are explicitly labeled as
 the legacy reader default alongside the current writer version, not rewritten.
 
 A present `scenario` header requires a nonblank native string and exact schema
@@ -1433,6 +1449,23 @@ Re-grade previous evaluation results without re-executing the agent.
 
 File-based graders require the actual preserved agent workspace via `--workspace`. Snapshot hashes and tool events cannot reconstruct those files. Prompt graders may contact the configured judge model.
 
+Final prompt graders with `config.evidence_context` instead verify the persisted
+`judge_evidence` bundle and create fresh isolated judge sessions, never resuming
+saved actor/judge sessions or fetching `snapshot_path`. Evidence-only grading
+does not inspect `--workspace`. Do not mix it with legacy prompt graders or
+`--evidence-snapshot`; newly selected files must already be captured.
+
+```bash
+waza grade examples/evidence-judge/eval.yaml --results results.json --task report --output regraded.json
+```
+
+This can incur new model charges. Original execution billing is unchanged; new
+sessions appear in `regrade_usage`. Ordinary failed judgments retain `grade`'s
+zero exit with `passed: false` / `status: failed`. Operational evidence/judge
+errors return nonzero, `status: error` and no `overall_score`; requested output
+retains admitted-source run diagnostics, and output-write errors propagate.
+See [frozen judging configuration and prerequisites](/waza/guides/graders/#evidence-backed-independent-judging).
+
 The narrow `--evidence-snapshot` mode verifies captured file contents instead.
 It requires `--task`, exactly one assessed matching run, original manifest
 SHA-256/full-origin verification, complete unredacted required files and text
@@ -1566,7 +1599,7 @@ Copilot-backed runs query the SDK's typed `session.usage.getMetrics` after compl
 | `summary.usage.model_metrics.<model>.ai_credits` | Final AI Credits attributed to a model |
 | `summary.usage.model_metrics.<model>.{input,output,cache_read,cache_write}_tokens` | Token-category diagnostics |
 
-The CLI usage summary prints `AI Credits` (and a per-model column) at nano-unit precision, and the dashboard shows **AI Credits** plus a **Usage by model** table. Totals include task, trigger, and prompt-grader sessions initiated by waza, not account-wide Copilot usage. A run or model aggregate with missing contributing metrics is unavailable, never a partial subtotal. The pinned SDK (`github.com/github/copilot-sdk/go` v1.0.14) exposes this typed API; older result artifacts show `—` in the dashboard (`n/a` in the CLI) rather than an estimate.
+The CLI usage summary prints `AI Credits` (and a per-model column) at nano-unit precision, and the classic dashboard shows **AI Credits** plus a **Usage by model** table. Totals include task, trigger, and prompt-grader sessions initiated by waza, not account-wide Copilot usage. A run or model aggregate with missing contributing metrics is unavailable, never a partial subtotal. Main currently uses `github.com/github/copilot-sdk/go` v1.0.21; published standalone `v0.38.10` uses v1.0.15. Older result artifacts show `—` in the dashboard (`n/a` in the CLI) rather than an estimate.
 
 ## Graders
 

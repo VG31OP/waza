@@ -8,9 +8,10 @@ Begin with [Concepts and learning order](../site/src/content/docs/concepts.mdx),
 then the [offline Quick Start](../site/src/content/docs/quick-start.mdx).
 Mock trials prove harness wiring, not agent quality. Read the
 [authentication and usage prerequisites](../site/src/content/docs/getting-started.mdx#authenticate-before-real-execution)
-before model-backed runs. Upcoming scenario/preflight/evidence features require
-main, not stable `v0.38.10` (October 9, 2026); `waza update` only installs
-published releases. See [availability](../site/src/content/docs/reference/releases.mdx).
+before model-backed runs. Scenario/preflight/evidence features are included in
+published `v0.39.0` (October 20, 2026); install that release or run `waza update`.
+Explicit opt-in and platform limits still apply; see
+[availability](../site/src/content/docs/reference/releases.mdx).
 
 ## What is Waza?
 
@@ -25,8 +26,10 @@ Waza helps you:
 - **Select fixed-design release assessment explicitly** with `compare` or `gate`
   using `--release-policy` and `--collection-dir`; historical results do not
   become fresh paired evidence. Use `compare-plan` with explicit design/
-  requirements and `compare-collect` for supported offline mock/native-text
-  collection. See [the end-to-end example and limits](CONTROLLED-COMPARISONS.md).
+  requirements and `compare-collect` for the offline mock collector, or
+  explicitly select `--collector native-copilot` for the bounded,
+  potentially paid Copilot SDK profile. See
+  [the end-to-end example and limits](CONTROLLED-COMPARISONS.md).
 - **Opt in separately to offline assurance** with `compare-assurance-plan`
   and a new exclusive `--output`, then explicitly select `--assurance-contract`
   with `--release-policy` during collection and assessment. Supply current
@@ -34,8 +37,9 @@ Waza helps you:
   Only mock/no-skills/native-text finite authored cases and retained actual
   responses are supported. Both fresh offline1.0 reports, deterministic regrade
   and all base non-assurance conditions must pass; stored report labels are
-  never adopted. Unreviewed examples stay nonpassing. No calibration, paid1.1,
-  billing/live SDK support or automatic paid validation.
+  never adopted. Unreviewed examples stay nonpassing. Live SDK assurance,
+  calibration, paid1.1/billing support and automatic paid validation are not
+  supported.
   Frozen base decisions and the API/dashboard still cannot pass required
   assurance; only the explicit outer CLI decision can.
   See [the independent profile](CONTROLLED-COMPARISONS.md#independent-offline-assurance-profile)
@@ -45,28 +49,37 @@ Waza helps you:
 
 Perfect for skill authors, platform teams, and developers building AI-powered applications.
 
-The native G1 source projector, G2 root-free capture reconstruction, static
-slot joins and G3 supplied retry-prefix inspection remain internal, not public
-collection modes. Retained consistency is not independently witnessed execution,
-durability, retry permission or release authority. New private durable writers
-support Linux/macOS only; Windows supplied-reader checks do not certify writing.
-See [the internal boundary](CONTROLLED-COMPARISONS.md#internal-native-task-groundwork-not-an-enabled-producer).
+The native source projector, root-free capture reconstruction and attempt
+inspection support the explicitly selected native collector; they are not
+independent collection modes. Retained local evidence is not independently
+witnessed execution, server isolation, authenticated assurance or release
+authority. Native durable collection is supported on Linux/macOS only; Windows
+supplied-reader checks do not certify writing. See
+[the native profile and limits](CONTROLLED-COMPARISONS.md#opt-in-native-copilot-collection).
 
 ---
 
-## Private dependency-fault testing
+## Dependency recovery scenarios
 
-The #662 harness is an internal, injected testing boundary, not a public
-finite-sequence configuration or retry feature. It preserves existing CLI/MCP
-mocks and explicit empty task overrides. Fault source validation happens before
-normalization or eager matcher/grader decoding; a standalone task's valid
-fragment does not establish enclosing scenario eligibility.
+Scenario evals (`scenario` plus exact `schemaVersion: "2.0"`) support finite
+MCP and CLI response sequences. They let eval authors test bounded retries,
+honest failure reporting, malformed payload handling and prohibited side effects
+without replaying a real CLI or server. Unmatched calls and sequence exhaustion
+fail closed. A configured timeout error is not transport cancellation.
 
-Private tests exercise cancellation with owned interruptible endpoints, finite
-allocation, matching, capture failures and isolated state. They do not certify
-platform process pipes, SDK resume, external integration or filesystem/network
-sandboxing. No live-agent execution is required for these tests. See the
-[private fault harness guide](../site/src/content/docs/guides/private-fault-fixtures.mdx).
+Run offline preflight without provider credentials:
+
+```bash
+go run ./cmd/waza preflight examples/scenarios/recovery/mcp/eval.yaml
+go run ./cmd/waza preflight examples/scenarios/recovery/cli/eval.yaml
+```
+
+Execution uses the configured Copilot SDK runtime. `command_mocks` intercept
+only declared executable names; other commands may use the host `PATH`. MCP
+fixtures do not restrict remote/network access. Result dependency modes describe
+configuration, and mocked tests do not establish real component reliability.
+See the [dependency recovery guide](../site/src/content/docs/guides/dependency-recovery.mdx)
+for fixtures and platform/cancellation boundaries.
 
 ## Installation
 
@@ -746,7 +759,7 @@ waza serve --tcp :9000
 
 ### Controlled Dependency Failures
 
-MCP mock `error` responses and command mock `stderr`/`exit_code` responses can model permanent failures or permission denial without contacting the dependency. Existing matchers return the first matching fixture on every call; they do not advance through a recovery sequence. Configured unmatched calls fail closed, and MCP unmatched diagnostics omit argument values. The in-process MCP handler rejects tool calls whose context is already canceled or expired before fixture dispatch; this is not per-request stdio cancellation or timeout injection.
+MCP mock `error` responses and command mock `stderr`/`exit_code` responses can model permanent failures or permission denial without contacting the dependency. Legacy responses return the first matching fixture on every call; scenario evals can instead opt into finite recovery sequences. Configured unmatched calls fail closed, and MCP unmatched diagnostics omit argument values. The MCP mock subprocess accepts per-request cancellation without resetting consumed steps or terminating the server. See the [dependency recovery guide](../site/src/content/docs/guides/dependency-recovery.mdx) for dispatch, interruption, and evidence boundaries.
 
 Use existing graders and checkpoints to check honest failure reporting and prohibited effects. A mocked interaction or responder message is not proof that an external operation occurred. Undeclared commands remain available through the host `PATH`, and command shim interception does not isolate the filesystem or network. See the [eval guide](../site/src/content/docs/guides/eval-yaml.mdx#choosing-a-test-boundary) for choosing mocked versus live dependencies.
 
@@ -1077,6 +1090,65 @@ waza run evals/code-explainer/eval.yaml -o results.json
 
 ## Snapshot inspection and regrading
 
+### Frozen independent prompt judging
+
+Final eval/task prompt graders may opt into `config.evidence_context: {}` for
+recorded task, visible conversation, canonical tools/results and output, with
+optional exact `files` and reviewed `evaluator_only` exclusions. The fresh judge
+has neither the actor session nor its live workspace. Omission preserves legacy
+behavior; checkpoint, pairwise, continuation and `--evidence-snapshot` combinations
+are rejected. This requires the current implementation, not an older CLI that
+does not implement evidence context.
+
+```bash
+waza preflight examples/evidence-judge/eval.yaml --context-dir examples/evidence-judge/fixtures
+waza run examples/evidence-judge/eval.yaml --context-dir examples/evidence-judge/fixtures --output results.json
+waza grade examples/evidence-judge/eval.yaml --results results.json --task report --output regraded.json
+```
+
+Provide an explicit hosted token or BYOK environment configuration; stored login,
+ambient actor config, hooks and skills are not inherited. The selected-file path
+requires Linux/macOS, with 64 files, 64 KiB/file and 256 KiB/compact JSON bundle
+limits. Formatting whitespace outside strings does not count toward that limit.
+Missing/incomplete/redacted evidence fails before model startup, without
+truncation or workspace recovery. Evidence-only regrading does not inspect
+`--workspace` or `snapshot_path`. It uses the recorded task, even if the current
+task changed, and newly selected files must already have been captured.
+Current eval/task selection unions and evaluator-only exclusions are checked
+again before any saved-evidence judge runs. Omitted judge models fall back to
+the eval model (then `auto`); explicit hosted reasoning effort must pass the
+isolated client's model-catalog checks before session creation.
+Valid, run-bound legacy snapshot manifests are retained as provenance only:
+old validations, result, grader-configuration and checkpoint artifacts become
+unavailable for the new assessment. Invalid or mismatched unused manifests are
+omitted with a warning; the frozen judge bundle is validated independently.
+
+Ordinary failed judgments retain `grade`'s zero exit and report `passed: false` /
+`status: failed`. Operational errors return nonzero and `status: error`, without
+an `overall_score` in stdout. After evidence grading starts, requested output
+retains safe failure diagnostics; publication errors propagate. Regrading can
+incur new model charges, recorded once per session in `regrade_usage.sessions`;
+this field covers the current regrade only and is omitted for a subsequent
+mechanical-only regrade. In a mixed-task regrade, a later mechanical grader's
+operational failure still publishes earlier judge observations and current
+charges to the requested output, while withholding the overall score.
+If verbose diagnostic output fails after judging, the saved observations and
+charges are retained and the affected run is marked as an error.
+Mechanical errors remain fail-fast and do not start any further judges;
+this also applies within a task that mixes mechanical and evidence graders,
+regardless of validator order. An error before the first evidence attempt
+creates no new judge session.
+Local evidence-admission and diagnostic-output errors also stop further judges;
+prompt-execution failures can still aggregate across independent tasks.
+Original `evaluation_usage` and actor billing remain
+unchanged. Missing credits are unavailable, not zero. The existing Evidence view
+reports per-run/per-grader submission metadata, not proof of inspection, accuracy,
+or authenticity.
+See the [canonical reference](https://microsoft.github.io/waza/guides/graders/#evidence-backed-independent-judging)
+for complete YAML, authentication, native-runtime scope and privacy limits.
+
+### Snapshot inspection
+
 ```bash
 waza run eval.yaml --output results.json --snapshot ./snapshots/
 waza replay ./snapshots/my-task-run1.json
@@ -1087,7 +1159,7 @@ Replay checks stored event sequencing and grader score/pass consistency without 
 
 Portable evidence (manifest `1.0`, snapshot `1.1`) keeps missing-version defaults
 for legacy eval/results readers at `1.4`, while newly generated results use result
-schema `1.6`. Task YAML has no independent schema-version field or default.
+schema `1.7`. Task YAML has no independent schema-version field or default.
 It describes every trial, full source origin, source/content
 digests, availability, completeness, redaction, unavailable versions, requested
 `no_skills`/native skill control, and operational uncertainty. Requested

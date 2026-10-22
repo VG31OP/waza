@@ -173,16 +173,20 @@ func (p *Prepared) Request(arm releasepolicy.Arm, taskID string) (*execution.Exe
 	}
 	for _, task := range snapshots[arm].Tasks {
 		if task.ID == taskID && task.Enabled {
-			var request execution.ExecutionRequest
-			decoder := json.NewDecoder(bytes.NewReader(task.Request))
-			decoder.UseNumber()
-			if err := decoder.Decode(&request); err != nil {
-				return nil, err
-			}
-			return &request, nil
+			return decodeSnapshotRequest(task.Request)
 		}
 	}
 	return nil, fmt.Errorf("native selected task %q is unavailable", taskID)
+}
+
+func decodeSnapshotRequest(raw json.RawMessage) (*execution.ExecutionRequest, error) {
+	var request execution.ExecutionRequest
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.UseNumber()
+	if err := decoder.Decode(&request); err != nil {
+		return nil, err
+	}
+	return &request, nil
 }
 
 func bind(ctx context.Context, location ArmLocation) (boundLocation, error) {
@@ -338,7 +342,7 @@ func captureArmRecorded(ctx context.Context, binding boundLocation, total *int, 
 	}
 	read := func(path, role string) ([]byte, error) {
 		files.role = role
-		data, err := files.ReadFile(filepath.Join(binding.base, path))
+		data, err := files.readFile(filepath.Join(binding.base, path), role != "executable")
 		if err == nil && recorder != nil {
 			err = recorder.read(path, role)
 		}
@@ -565,7 +569,7 @@ func captureArmRecorded(ctx context.Context, binding boundLocation, total *int, 
 			return result, nil, err
 		}
 	}
-	inventory := files.inventory()
+	inventory := files.takeInventory()
 	result.Sources = make([]sourceIdentity, 0, len(inventory))
 	for _, source := range inventory {
 		result.Sources = append(result.Sources, sourceIdentity{source.Path, source.Roles, len(source.Bytes), source.Digest})
