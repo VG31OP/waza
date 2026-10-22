@@ -4,6 +4,13 @@ A Go CLI for evaluating agent workflows, skills, and custom agents — author re
 
 📖 **[Getting Started / Docs](https://microsoft.github.io/waza/)**
 
+The docs site also supports an optional **Ask Waza** assistant for cited
+documentation Q&A and pasted YAML/error troubleshooting. Public sending is
+source-hard-disabled, including when the optional launcher is shown. Development
+fixtures are explicitly simulated. A separately launched, authenticated
+loopback-only private preview can test the operator backend without putting its
+Function key in the browser. See [scope, privacy, and integration handoff](site/src/content/docs/guides/docs-assistant.mdx).
+
 **Choose your path:** [Concepts and learning order](site/src/content/docs/concepts.mdx)
 → [offline harness Quick Start](site/src/content/docs/quick-start.mdx)
 → [authenticated workflow evaluation](site/src/content/docs/getting-started.mdx)
